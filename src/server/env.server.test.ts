@@ -29,4 +29,21 @@ describe('parseServerEnv', () => {
       parseServerEnv({ ...valid, APPWRITE_ENDPOINT: 'fra.cloud' }),
     ).toThrow(/APPWRITE_ENDPOINT/)
   })
+
+  it('accepte une URL publique HTTPS et la laisse optionnelle', () => {
+    expect(parseServerEnv(valid).PUBLIC_SITE_URL).toBeUndefined()
+    expect(
+      parseServerEnv({ ...valid, PUBLIC_SITE_URL: '' }).PUBLIC_SITE_URL,
+    ).toBeUndefined()
+    expect(
+      parseServerEnv({ ...valid, PUBLIC_SITE_URL: 'https://smodeal.fr' })
+        .PUBLIC_SITE_URL,
+    ).toBe('https://smodeal.fr')
+  })
+
+  it('refuse une URL publique non sécurisée', () => {
+    expect(() =>
+      parseServerEnv({ ...valid, PUBLIC_SITE_URL: 'http://smodeal.fr' }),
+    ).toThrow(/PUBLIC_SITE_URL/)
+  })
 })

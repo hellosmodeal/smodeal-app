@@ -18,18 +18,21 @@ import {
   type PreviewFilters,
   previewCategories,
 } from '@/features/listings/home-preview'
+import { getSeoConfig } from '@/features/seo/functions'
+import { buildPageHead } from '@/features/seo/rules'
 import { cn } from '@/lib/utils'
 
+const homePage = {
+  title: 'Smodeal — Les belles choses circulent',
+  description:
+    'Smodeal réunit les petites annonces entre particuliers près de chez vous. Découvrez des objets à transmettre et donnez une nouvelle vie aux vôtres.',
+  path: '/',
+  imageAlt: 'Smodeal — Les belles choses circulent',
+}
+
 export const Route = createFileRoute('/')({
-  head: () => ({
-    meta: [
-      { title: 'Smodeal — Petites annonces entre particuliers' },
-      {
-        name: 'description',
-        content: 'Découvrez des objets près de chez vous sur Smodeal.',
-      },
-    ],
-  }),
+  loader: () => getSeoConfig(),
+  head: ({ loaderData }) => buildPageHead(homePage, loaderData),
   component: Home,
 })
 
@@ -125,7 +128,7 @@ function Home() {
           </div>
           <button
             type="submit"
-            className="min-h-12 rounded-lg px-10 font-semibold bg-brand text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-brand-dark"
+            className="min-h-12 rounded-lg px-10 font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
           >
             Rechercher
           </button>
@@ -144,8 +147,8 @@ function Home() {
             className={cn(
               'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
               filters.category === ''
-                ? 'border-brand text-brand'
-                : 'border-transparent hover:text-brand',
+                ? 'border-brand text-brand-dark'
+                : 'border-transparent hover:text-brand-dark',
             )}
           >
             <Grid2X2 aria-hidden="true" className="size-5" />
@@ -167,8 +170,8 @@ function Home() {
                 className={cn(
                   'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
                   filters.category === category.slug
-                    ? 'border-brand text-brand'
-                    : 'border-transparent hover:text-brand',
+                    ? 'border-brand text-brand-dark'
+                    : 'border-transparent hover:text-brand-dark',
                 )}
               >
                 <Icon aria-hidden="true" className="size-5" />
@@ -287,7 +290,7 @@ function Home() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-lg border border-brand mt-3 py-2 px-4 text-sm font-semibold text-brand hover:bg-accent"
+              className="rounded-lg border border-brand mt-3 py-2 px-4 text-sm font-semibold text-brand-dark hover:bg-accent"
             >
               Effacer les filtres
             </button>
@@ -297,7 +300,7 @@ function Home() {
           <button
             type="button"
             onClick={clearFilters}
-            className="inline-flex gap-2 items-center rounded-lg border border-brand py-2 px-5 text-sm font-semibold text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
+            className="inline-flex gap-2 items-center rounded-lg border border-brand py-2 px-5 text-sm font-semibold text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
           >
             Voir toutes les annonces{' '}
             <ArrowRight aria-hidden="true" className="size-4" />
@@ -312,7 +315,7 @@ function Home() {
           </h2>
           <Link
             to="/inscription"
-            className="shrink-0 rounded-lg py-2.5 px-5 text-center text-sm font-semibold bg-brand text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-brand-dark"
+            className="shrink-0 rounded-lg py-2.5 px-5 text-center text-sm font-semibold bg-brand-dark text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
           >
             Créer un compte pour vendre
           </Link>

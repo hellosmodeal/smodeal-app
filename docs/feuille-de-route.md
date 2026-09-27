@@ -12,8 +12,11 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 - [ ] Arrêter les conditions commerciales et frais récurrents hors de ce dépôt.
 - [ ] Choisir hébergement SSR, plan et région Appwrite, email et sauvegardes. Proposé : Appwrite Sites (SSR, même
   projet Appwrite, région Francfort).
+- [x] Confirmer le domaine officiel : `https://smodeal.com` (`www` redirige), déjà servi par le site Appwrite
+  `smodeal-web` (branche `main`). Indexation active seulement avec `PUBLIC_SITE_URL` sur ce site.
 - [ ] Valider les écrans principaux et préparer les fichiers de marque définitifs.
-- [ ] Valider la palette et la typographie proposées sur la page d'accueil ; remplacer le logo raster intégré par les fichiers vectoriels définitifs.
+- [x] Valider la palette et la typographie utilisées sur la page d'accueil.
+- [ ] Remplacer le logo raster intégré par les fichiers vectoriels définitifs.
 
 ## Étapes de réalisation
 

@@ -28,6 +28,7 @@ Le plan Appwrite reste à définir ; l'hébergement proposé pour le serveur web
 | [Architecture](docs/architecture.md) | Composants, données et règles d'accès proposées |
 | [Feuille de route](docs/feuille-de-route.md) | Ordre de réalisation et décisions ouvertes |
 | [Identité visuelle](docs/identite-visuelle.md) | Nom et direction du logo validés |
+| [Design](DESIGN.md) | Direction visuelle validée pour la V1, écrans à construire et livrables de marque |
 
 ## Développement
 
@@ -41,6 +42,8 @@ pnpm dev               # http://localhost:8670
 
 Le schéma Appwrite est déclaré dans `appwrite.config.json` et se pousse avec la CLI Appwrite :
 `appwrite push tables` puis `appwrite push buckets`.
+
+Le domaine officiel est `https://smodeal.com` (`www.smodeal.com` redirige vers lui). En production, `PUBLIC_SITE_URL=https://smodeal.com` est une variable du site Appwrite `smodeal-web`, pas une valeur versionnée ; en local, la laisser vide. L'indexation et les liens canoniques ne s'activent que si la variable est renseignée **et** que la requête vise exactement cet hôte : les domaines de prévisualisation Appwrite, `www` et le poste local restent en `noindex`, avec une image Open Graph servie depuis l'origine de la requête. Les pages de connexion, d'inscription et de compte restent hors indexation.
 
 | Commande | Rôle |
 | --- | --- |
