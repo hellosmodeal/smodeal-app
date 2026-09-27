@@ -29,7 +29,7 @@ La palette et Geist Variable sont validées pour la V1 ; leurs valeurs figurent 
 
 ## Direction visuelle validée pour la V1
 
-La page d'accueil suit la maquette fournie : fond blanc (`#ffffff`), bandeau crème clair, anthracite (`#17191e`) et orange vif (`#ff4b1f`). Un orange foncé (`#ca3510`) sert aux interactions et aux contrastes. Cette palette est validée pour la V1 et centralisée dans `src/styles.css`.
+La page d'accueil suit la maquette fournie : fond blanc (`#ffffff`), bandeau crème clair, anthracite (`#17191e`) et orange vif (`#ff4b1f`). Un orange foncé (`#ca3510`) sert aux interactions et aux contrastes : fond des boutons à texte blanc et texte orange, pour respecter le contraste AA. Cette palette est validée pour la V1 et centralisée dans `src/styles.css`.
 
 La typographie courante et les titres reposent sur Geist Variable, déjà présent dans le projet. Les photos dans `public/images/` ont été générées pour illustrer des annonces fictives ; elles ne représentent pas des annonces réelles.
 

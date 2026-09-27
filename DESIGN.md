@@ -35,15 +35,15 @@ Les valeurs ci-dessous sont validées pour la V1 ; la source technique est `src/
 | Fond principal | `#ffffff` | Surface de lecture et cartes |
 | Bandeau d'accueil | `#faf7f2` | Accueil chaleureux, sans concurrencer les annonces |
 | Texte principal | `#17191e` | Titres, prix, navigation et contraste |
-| Orange de marque | `#ff4b1f` | Action principale et repère actif |
-| Orange d'interaction | `#ca3510` | Survol et contraste sur fond clair |
+| Orange de marque | `#ff4b1f` | Logo, repère actif, bordures d'action, focus et icônes |
+| Orange d'interaction | `#ca3510` | Fond des boutons à texte blanc et texte orange sur fond clair |
 | Surface secondaire | `#f6f4f1` | Regroupement discret |
 | Texte secondaire | `#6b7280` | Métadonnées et descriptions |
 | Bordure | `#dde0e5` | Champs et séparations |
 
 Geist Variable est utilisée pour le texte et les titres. Les titres sont denses et affirmés ; les informations d'annonce restent faciles à parcourir. La largeur maximale de contenu est `max-w-7xl` avec des marges latérales adaptées au mobile. Les champs de recherche et leur bouton ont actuellement une hauteur minimale de 48 px ; les surfaces courantes ont un rayon proche de 10 px. Ces repères guident les nouveaux écrans de la V1.
 
-L'orange signale une action ou une sélection. Les prix et titres restent anthracite pour préserver la hiérarchie. Éviter d'utiliser la couleur seule pour exprimer un état : ajouter un libellé, une icône ou un état accessible.
+L'orange signale une action ou une sélection. Contraste (WCAG AA) : le blanc sur `#ff4b1f` n'atteint que 3,3:1, suffisant pour le logo, les icônes et les repères non textuels mais pas pour un libellé. Les boutons pleins à texte blanc utilisent donc `#ca3510` (5,2:1) et tout texte orange de taille courante aussi (5,2:1 sur blanc, 4,9:1 sur le bandeau crème) ; le survol assombrit légèrement le bouton. Les prix et titres restent anthracite pour préserver la hiérarchie. Éviter d'utiliser la couleur seule pour exprimer un état : ajouter un libellé, une icône ou un état accessible.
 
 ## Principes d'interface
 
@@ -88,7 +88,7 @@ Rédiger en français courant : verbes d'action courts, catégories compréhensi
 ## Livrables et décisions encore ouverts
 
 - Fichiers vectoriels du logo et du symbole, variantes clair/sombre et règles d'espacement.
-- Vérification des contrastes et déclinaison des styles validés sur l'ensemble des écrans.
+- Vérification des contrastes sur chaque nouvel écran (boutons et textes orange traités sur les écrans existants).
 - Catégories et champs du formulaire de dépôt.
 - Maquettes des résultats, du détail, du dépôt, de l'authentification et du compte après confrontation aux parcours V1.
 - Images réelles, règles de modération visuelle et visuels de remplacement.

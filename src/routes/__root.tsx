@@ -81,7 +81,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {isHome && (
               <a
                 href="#annonces"
-                className="hidden mr-auto text-sm font-medium sm:block hover:text-brand"
+                className="hidden mr-auto text-sm font-medium sm:block hover:text-brand-dark"
               >
                 Explorer
               </a>
@@ -110,7 +110,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   </Link>
                   <Link
                     to="/inscription"
-                    className="rounded-lg py-2.5 px-4 bg-brand text-white transition-colors sm:px-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:bg-brand-dark"
+                    className="rounded-lg py-2.5 px-4 bg-brand-dark text-white transition-colors sm:px-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:brightness-90"
                   >
                     Créer un compte
                   </Link>
