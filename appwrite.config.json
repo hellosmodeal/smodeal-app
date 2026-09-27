@@ -1,0 +1,458 @@
+{
+  "projectId": "6ab8046300165a85123a",
+  "endpoint": "https://fra.cloud.appwrite.io/v1",
+  "projectName": "Smodeal dev",
+  "tablesDB": [
+    {
+      "$id": "smodeal",
+      "name": "Smodeal",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "profiles",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Profils publics",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "userId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "pseudonym",
+          "type": "varchar",
+          "size": 40,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "uniq_user",
+          "type": "unique",
+          "columns": ["userId"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "contacts",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Contacts privés",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "userId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "phone",
+          "type": "varchar",
+          "size": 20,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "displayConsent",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "uniq_user",
+          "type": "unique",
+          "columns": ["userId"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "categories",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Catégories",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "slug",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "label",
+          "type": "varchar",
+          "size": 80,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "uniq_slug",
+          "type": "unique",
+          "columns": ["slug"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "listings",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Annonces",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "ownerId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "title",
+          "type": "varchar",
+          "size": 120,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "description",
+          "type": "text",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "categorySlug",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "condition",
+          "type": "string",
+          "format": "enum",
+          "elements": ["new", "like_new", "good", "fair"],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "priceCents",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 2000000000
+        },
+        {
+          "key": "city",
+          "type": "varchar",
+          "size": 120,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "postalCode",
+          "type": "varchar",
+          "size": 5,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "department",
+          "type": "varchar",
+          "size": 3,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "photoIds",
+          "type": "varchar",
+          "size": 36,
+          "required": false,
+          "array": true
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "active",
+            "sold",
+            "expired",
+            "withdrawn",
+            "removed_by_moderation"
+          ],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "publishedAt",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "expiresAt",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "soldAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "status_expires",
+          "type": "key",
+          "columns": ["status", "expiresAt"],
+          "orders": ["ASC", "ASC"]
+        },
+        {
+          "key": "status_published",
+          "type": "key",
+          "columns": ["status", "publishedAt"],
+          "orders": ["ASC", "DESC"]
+        },
+        {
+          "key": "status_price",
+          "type": "key",
+          "columns": ["status", "priceCents"],
+          "orders": ["ASC", "ASC"]
+        },
+        {
+          "key": "owner",
+          "type": "key",
+          "columns": ["ownerId"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "category",
+          "type": "key",
+          "columns": ["categorySlug"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "department",
+          "type": "key",
+          "columns": ["department"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "postal_code",
+          "type": "key",
+          "columns": ["postalCode"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "title_search",
+          "type": "fulltext",
+          "columns": ["title"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "reports",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Signalements",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "listingId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "reporterId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "reason",
+          "type": "varchar",
+          "size": 500,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "state",
+          "type": "string",
+          "format": "enum",
+          "elements": ["open", "resolved", "dismissed"],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "resolvedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "listing",
+          "type": "key",
+          "columns": ["listingId"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "state",
+          "type": "key",
+          "columns": ["state"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "moderation_logs",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Journal de modération",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "adminId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "targetType",
+          "type": "string",
+          "format": "enum",
+          "elements": ["listing", "user"],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "targetId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "action",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "remove_listing",
+            "suspend_user",
+            "restore_user",
+            "dismiss_report",
+            "resolve_report"
+          ],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "reason",
+          "type": "varchar",
+          "size": 500,
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "target",
+          "type": "key",
+          "columns": ["targetId"],
+          "orders": ["ASC"]
+        }
+      ]
+    },
+    {
+      "$id": "usage_events",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Événements d'usage",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "type",
+          "type": "string",
+          "format": "enum",
+          "elements": ["listing_published", "contact_revealed", "listing_sold"],
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "listingId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "occurredAt",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "type_date",
+          "type": "key",
+          "columns": ["type", "occurredAt"],
+          "orders": ["ASC", "ASC"]
+        }
+      ]
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "listing-photos",
+      "$permissions": ["read(\"any\")"],
+      "fileSecurity": false,
+      "name": "Photos d'annonces",
+      "enabled": true,
+      "maximumFileSize": 5242880,
+      "allowedFileExtensions": ["jpg", "jpeg", "png", "webp"],
+      "compression": "none",
+      "encryption": false,
+      "antivirus": true
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "smodeal-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --port 8670",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node .output/server/index.mjs",
+    "generate-routes": "tsr generate",
+    "typecheck": "tsr generate && tsc --noEmit",
+    "lint": "biome check",
+    "test": "vitest run",
+    "format": "biome check --write",
+    "knip": "knip",
+    "lint:tailwind": "tailwind-canonical --fix --sort --check src",
+    "prepare": "test ! -e .git || lefthook install"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.8.0",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-devtools": "^0.10.13",
+    "@tanstack/react-router": "^1.170.39",
+    "@tanstack/react-router-devtools": "^1.167.2",
+    "@tanstack/react-start": "^1.168.58",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.4.0",
+    "lucide-react": "^1.48.0",
+    "nitro": "3.0.260903-beta",
+    "node-appwrite": "^29.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "shadcn": "^4.21.0",
+    "tailwindcss": "^4.3.3",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@tanstack/devtools-vite": "^0.8.5",
+    "@tanstack/router-cli": "^1.167.38",
+    "@types/node": "^24.13.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "knip": "^6.38.0",
+    "lefthook": "^2.1.14",
+    "tailwind-canonical": "^0.7.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  },
+  "packageManager": "pnpm@11.27.1",
+  "engines": {
+    "node": ">=24"
+  }
+}
