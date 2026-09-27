@@ -22,10 +22,37 @@ describe('resolveSeoConfig', () => {
     ).toEqual({ origin: 'http://localhost:8670', indexable: false })
   })
 
-  it("devient indexable avec l'origine de l'URL publique", () => {
+  it("devient indexable quand la requête vise l'hôte de l'URL publique", () => {
     expect(
-      resolveSeoConfig('https://exemple.fr/chemin', 'http://interne:3000/'),
-    ).toEqual({ origin: 'https://exemple.fr', indexable: true })
+      resolveSeoConfig(
+        'https://smodeal.com/chemin',
+        'https://smodeal.com/?q=1',
+      ),
+    ).toEqual({ origin: 'https://smodeal.com', indexable: true })
+  })
+
+  it('ignore la casse et le port HTTP interne de l’hôte public', () => {
+    expect(
+      resolveSeoConfig('https://smodeal.com', 'http://SMODEAL.com:3000/'),
+    ).toEqual({ origin: 'https://smodeal.com', indexable: true })
+  })
+
+  it('reste en noindex sur un domaine de prévisualisation', () => {
+    expect(
+      resolveSeoConfig(
+        'https://smodeal.com',
+        'https://branche-123.fra.appwrite.run/recherche',
+      ),
+    ).toEqual({
+      origin: 'https://branche-123.fra.appwrite.run',
+      indexable: false,
+    })
+  })
+
+  it('reste en noindex sur un sous-domaine du domaine public', () => {
+    expect(
+      resolveSeoConfig('https://smodeal.com', 'https://www.smodeal.com/'),
+    ).toEqual({ origin: 'https://www.smodeal.com', indexable: false })
   })
 })
 

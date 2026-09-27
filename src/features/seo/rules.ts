@@ -27,9 +27,13 @@ export function resolveSeoConfig(
   publicSiteUrl: string | undefined,
   requestUrl: string,
 ): SeoConfig {
+  const request = new URL(requestUrl)
+  const publicSite = publicSiteUrl ? new URL(publicSiteUrl) : undefined
+  const isPublicHost = publicSite?.hostname === request.hostname
+
   return {
-    origin: new URL(publicSiteUrl ?? requestUrl).origin,
-    indexable: Boolean(publicSiteUrl),
+    origin: isPublicHost ? publicSite.origin : request.origin,
+    indexable: isPublicHost,
   }
 }
 

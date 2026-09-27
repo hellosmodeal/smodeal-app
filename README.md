@@ -43,7 +43,7 @@ pnpm dev               # http://localhost:8670
 Le schéma Appwrite est déclaré dans `appwrite.config.json` et se pousse avec la CLI Appwrite :
 `appwrite push tables` puis `appwrite push buckets`.
 
-Pour activer les liens canoniques et l'indexation de l'accueil, renseigner `PUBLIC_SITE_URL` avec l'origine HTTPS officielle du site (par exemple `https://votre-domaine.fr`). Tant que cette variable est absente, les pages restent en `noindex` ; l'image Open Graph utilise l'origine de la requête pour les aperçus du site de développement. Les pages de connexion, d'inscription et de compte restent hors indexation.
+Le domaine officiel est `https://smodeal.com` (`www.smodeal.com` redirige vers lui). En production, `PUBLIC_SITE_URL=https://smodeal.com` est une variable du site Appwrite `smodeal-web`, pas une valeur versionnée ; en local, la laisser vide. L'indexation et les liens canoniques ne s'activent que si la variable est renseignée **et** que la requête vise exactement cet hôte : les domaines de prévisualisation Appwrite, `www` et le poste local restent en `noindex`, avec une image Open Graph servie depuis l'origine de la requête. Les pages de connexion, d'inscription et de compte restent hors indexation.
 
 | Commande | Rôle |
 | --- | --- |
