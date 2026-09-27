@@ -13,6 +13,7 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 - [ ] Choisir hébergement SSR, plan et région Appwrite, email et sauvegardes. Proposé : Appwrite Sites (SSR, même
   projet Appwrite, région Francfort).
 - [ ] Valider les écrans principaux et préparer les fichiers de marque définitifs.
+- [ ] Valider la palette et la typographie proposées sur la page d'accueil ; remplacer le logo raster intégré par les fichiers vectoriels définitifs.
 
 ## Étapes de réalisation
 
@@ -32,6 +33,10 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 4. **Commissions et publicité** : cadrage distinct du paiement, des reversements, incidents et règles d'affichage.
 
 Une confirmation déclarative ne prouve pas le paiement. L'absence de paiement intégré dans la V1 ne permet pas de prélever automatiquement une commission.
+
+## État de la page d'accueil
+
+Une première version responsive de la direction artistique et de la page d'accueil est intégrée. Elle montre la structure d'un accueil de petites annonces : recherche, catégories, cartes d'annonces et accès à l'inscription. Les cartes, prix et lieux sont des exemples fictifs explicitement signalés dans l'interface ; la recherche filtre ces exemples pour permettre de tester la maquette. Les annonces réelles, catégories validées et filtres complets seront raccordés à l'étape « Découverte », une fois les données et les routes de consultation disponibles.
 
 ## Tenue de la documentation
 
