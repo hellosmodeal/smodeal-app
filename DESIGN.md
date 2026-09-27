@@ -65,13 +65,13 @@ Ordre de lecture et comportement de la page implémentée :
 6. État sans résultat avec une action pour effacer les filtres.
 7. Invitation à créer un compte pour vendre, puis pied de page.
 
-La grille passe d'une colonne sur mobile à deux sur tablette et quatre sur grand écran. Les champs de recherche s'empilent sur mobile. Les annonces affichées sont **des exemples fictifs** ; les filtres agissent seulement sur cet échantillon. Le bouton « Voir toutes les annonces » remet ces filtres à zéro tant que la vraie route de consultation n'existe pas.
+La grille passe d'une colonne sur mobile à deux sur tablette et quatre sur grand écran. Les champs de recherche s'empilent sur mobile. Les annonces affichées sont **des exemples fictifs** ; les filtres agissent seulement sur cet échantillon. Le formulaire de recherche et le lien « Voir toutes les annonces » ouvrent la page de résultats `/recherche`.
 
 ## Écrans à décliner
 
 | Écran | Direction attendue | État |
 | --- | --- | --- |
-| Résultats de recherche | Reprendre barre de recherche, catégories, filtres, tri et cartes ; montrer le nombre de résultats et l'état vide | À construire |
+| Résultats de recherche | Reprendre barre de recherche, catégories, filtres, tri et cartes ; montrer le nombre de résultats et l'état vide | Implémenté avec des données fictives (`src/routes/recherche.tsx`) |
 | Détail d'une annonce | Photos et titre au premier plan, prix et lieu lisibles, informations vendeur et action de contact protégée | À construire |
 | Dépôt d'annonce | Formulaire progressif et clair : catégorie, description, prix, lieu, photos, vérification avant publication | À construire ; champs et catégories à confirmer |
 | Connexion et inscription | Reprendre logo, typographie, couleurs, champs et états d'erreur du système | Routes fonctionnelles, habillage à rapprocher des maquettes |
