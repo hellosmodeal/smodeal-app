@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "appwrite": {
+      "type": "http",
+      "url": "https://mcp.appwrite.io"
+    },
+    "ionos": {
+      "type": "http",
+      "url": "https://mcp.ionos.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${IONOS_MCP_TOKEN}"
+      }
+    }
+  }
+}
