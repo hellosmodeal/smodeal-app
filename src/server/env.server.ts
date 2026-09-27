@@ -5,6 +5,16 @@ const serverEnvSchema = z.object({
   APPWRITE_PROJECT_ID: z.string().min(1),
   APPWRITE_API_KEY: z.string().min(1),
   APPWRITE_DATABASE_ID: z.string().min(1),
+  PUBLIC_SITE_URL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .url()
+      .refine(
+        (value) => new URL(value).protocol === 'https:',
+        'URL HTTPS requise',
+      )
+      .optional(),
+  ),
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
     .default('development'),

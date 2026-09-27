@@ -13,7 +13,8 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 - [ ] Choisir hébergement SSR, plan et région Appwrite, email et sauvegardes. Proposé : Appwrite Sites (SSR, même
   projet Appwrite, région Francfort).
 - [ ] Valider les écrans principaux et préparer les fichiers de marque définitifs.
-- [ ] Valider la palette et la typographie proposées sur la page d'accueil ; remplacer le logo raster intégré par les fichiers vectoriels définitifs.
+- [x] Valider la palette et la typographie utilisées sur la page d'accueil.
+- [ ] Remplacer le logo raster intégré par les fichiers vectoriels définitifs.
 
 ## Étapes de réalisation
 

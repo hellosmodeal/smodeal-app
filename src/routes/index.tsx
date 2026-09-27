@@ -18,18 +18,21 @@ import {
   type PreviewFilters,
   previewCategories,
 } from '@/features/listings/home-preview'
+import { getSeoConfig } from '@/features/seo/functions'
+import { buildPageHead } from '@/features/seo/rules'
 import { cn } from '@/lib/utils'
 
+const homePage = {
+  title: 'Smodeal — Les belles choses circulent',
+  description:
+    'Smodeal réunit les petites annonces entre particuliers près de chez vous. Découvrez des objets à transmettre et donnez une nouvelle vie aux vôtres.',
+  path: '/',
+  imageAlt: 'Smodeal — Les belles choses circulent',
+}
+
 export const Route = createFileRoute('/')({
-  head: () => ({
-    meta: [
-      { title: 'Smodeal — Petites annonces entre particuliers' },
-      {
-        name: 'description',
-        content: 'Découvrez des objets près de chez vous sur Smodeal.',
-      },
-    ],
-  }),
+  loader: () => getSeoConfig(),
+  head: ({ loaderData }) => buildPageHead(homePage, loaderData),
   component: Home,
 })
 

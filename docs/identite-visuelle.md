@@ -13,21 +13,24 @@ Le symbole orange en forme de S remplace la première lettre du nom : **[symbole
 - Identité simple, professionnelle et rapidement reconnaissable.
 - Éviter de doubler le symbole par un second « s » dans le mot.
 
-## Fichiers à préparer
+## Fichiers intégrés
 
 Le logo raster fourni dans les maquettes du 27 septembre 2026 est intégré dans `public/brand/smodeal-logo.png`. Il sert de référence pour l'interface, mais ne remplace pas un fichier vectoriel final.
 
+Le symbole S dérivé de cette direction existe en favicon (`.ico`, 16 et 32 px), icône Apple (180 px) et icônes Android (192 et 512 px). `public/og-image.png` est l'image de partage 1200 × 630 px. Ces exports restent des références raster.
+
+## Fichiers à préparer
+
 - Version vectorielle propre du logo complet et du symbole seul.
 - Exports sur fond transparent, versions monochromes et variantes pour fond clair/sombre.
-- Favicon et icônes aux dimensions nécessaires à l'application.
-- Codes couleur définitifs, marges de protection et taille minimale après vérification de lisibilité.
+- Marges de protection et taille minimale après vérification de lisibilité.
 
-Les couleurs exactes et la police ne sont pas encore normalisées. Ne pas présenter une génération raster comme un fichier vectoriel final.
+La palette et Geist Variable sont validées pour la V1 ; leurs valeurs figurent dans [DESIGN.md](../DESIGN.md) et `src/styles.css`. Ne pas présenter une génération raster comme un fichier vectoriel final.
 
-## Proposition intégrée à l'interface (à valider)
+## Direction visuelle validée pour la V1
 
-La page d'accueil suit la maquette fournie : fond blanc (`#ffffff`), bandeau crème clair, anthracite (`#17191e`) et orange vif (`#ff4b1f`). Un orange foncé (`#ca3510`) sert aux interactions et aux contrastes. Ces valeurs sont des propositions d'interface, pas encore une charte normalisée. Les couleurs sont centralisées dans `src/styles.css`.
+La page d'accueil suit la maquette fournie : fond blanc (`#ffffff`), bandeau crème clair, anthracite (`#17191e`) et orange vif (`#ff4b1f`). Un orange foncé (`#ca3510`) sert aux interactions et aux contrastes. Cette palette est validée pour la V1 et centralisée dans `src/styles.css`.
 
 La typographie courante et les titres reposent sur Geist Variable, déjà présent dans le projet. Les photos dans `public/images/` ont été générées pour illustrer des annonces fictives ; elles ne représentent pas des annonces réelles.
 
-Le logo raster dans l'en-tête devra être remplacé par le logo vectoriel final après validation des proportions, des coupes diagonales, des marges et des variantes de fond.
+Le logo raster dans l'en-tête devra être remplacé par le logo vectoriel final après production et vérification des proportions, des coupes diagonales, des marges et des variantes de fond.
