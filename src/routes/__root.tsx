@@ -59,9 +59,9 @@ export const Route = createRootRouteWithContext<{
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { user } = Route.useRouteContext()
-  const isHome = useLocation({
-    select: (location) => location.pathname === '/',
-  })
+  const pathname = useLocation({ select: (location) => location.pathname })
+  const isHome = pathname === '/'
+  const isFullWidth = isHome || pathname === '/recherche'
 
   return (
     <html lang="fr">
@@ -121,7 +121,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </header>
         <main
           className={
-            isHome ? 'min-h-[60vh]' : 'mx-auto min-h-[60vh] max-w-5xl px-4 py-8'
+            isFullWidth
+              ? 'min-h-[60vh]'
+              : 'mx-auto min-h-[60vh] max-w-5xl px-4 py-8'
           }
         >
           {children}

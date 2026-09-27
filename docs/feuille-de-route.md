@@ -41,6 +41,8 @@ Une confirmation déclarative ne prouve pas le paiement. L'absence de paiement i
 
 Une première version responsive de la direction artistique et de la page d'accueil est intégrée. Elle montre la structure d'un accueil de petites annonces : recherche, catégories, cartes d'annonces et accès à l'inscription. Les cartes, prix et lieux sont des exemples fictifs explicitement signalés dans l'interface ; la recherche filtre ces exemples pour permettre de tester la maquette. Les annonces réelles, catégories validées et filtres complets seront raccordés à l'étape « Découverte », une fois les données et les routes de consultation disponibles.
 
+La page de résultats de recherche (`/recherche`) est implémentée sur le même échantillon fictif : mot-clé, lieu (ville, code postal ou département), catégorie, département, prix, tri et pagination sont portés par l'URL et appliqués côté serveur par `src/features/search/rules.ts`. Elle reste en `noindex` et signale les exemples fictifs. Le raccordement aux annonces Appwrite reste à faire avec l'étape « Découverte ».
+
 ## Tenue de la documentation
 
 Mettre à jour le périmètre et les critères de réception lorsqu'une décision change. Distinguer explicitement ce qui est proposé, accepté et implémenté. Ajouter les commandes de démarrage et de déploiement uniquement après les avoir vérifiées dans le projet.

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   Armchair,
   ArrowRight,
@@ -18,6 +18,7 @@ import {
   type PreviewFilters,
   previewCategories,
 } from '@/features/listings/home-preview'
+import { parseSearchCriteria } from '@/features/search/rules'
 import { getSeoConfig } from '@/features/seo/functions'
 import { buildPageHead } from '@/features/seo/rules'
 import { cn } from '@/lib/utils'
@@ -55,10 +56,18 @@ function Home() {
     sort: 'recent',
   })
   const listings = filterPreviewListings(filters)
+  const navigate = useNavigate()
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setFilters((current) => ({ ...current, keyword, city }))
+    void navigate({
+      to: '/recherche',
+      search: parseSearchCriteria({
+        q: keyword,
+        lieu: city,
+        categorie: filters.category,
+      }),
+    })
   }
 
   function clearFilters() {
@@ -93,46 +102,52 @@ function Home() {
       </section>
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <form
-          aria-label="Rechercher parmi les exemples d’annonces"
-          onSubmit={handleSearch}
-          className="grid gap-3 py-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]"
-        >
-          <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
-            <Search aria-hidden="true" className="shrink-0 size-5" />
-            <label htmlFor="search-keyword" className="sr-only">
-              Que recherchez-vous ?
-            </label>
-            <input
-              id="search-keyword"
-              type="search"
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              placeholder="Que recherchez-vous ?"
-              className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
-            />
-          </div>
-          <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
-            <MapPin aria-hidden="true" className="shrink-0 size-5" />
-            <label htmlFor="search-city" className="sr-only">
-              Ville, code postal ou département
-            </label>
-            <input
-              id="search-city"
-              type="search"
-              value={city}
-              onChange={(event) => setCity(event.target.value)}
-              placeholder="Ville, code postal ou département"
-              className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
-            />
-          </div>
-          <button
-            type="submit"
-            className="min-h-12 rounded-lg px-10 font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
+        <search>
+          <form
+            action="/recherche"
+            method="get"
+            aria-label="Rechercher des annonces"
+            onSubmit={handleSearch}
+            className="grid gap-3 py-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]"
           >
-            Rechercher
-          </button>
-        </form>
+            <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
+              <Search aria-hidden="true" className="shrink-0 size-5" />
+              <label htmlFor="search-keyword" className="sr-only">
+                Que recherchez-vous ?
+              </label>
+              <input
+                id="search-keyword"
+                name="q"
+                type="search"
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                placeholder="Que recherchez-vous ?"
+                className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
+              <MapPin aria-hidden="true" className="shrink-0 size-5" />
+              <label htmlFor="search-city" className="sr-only">
+                Ville, code postal ou département
+              </label>
+              <input
+                id="search-city"
+                name="lieu"
+                type="search"
+                value={city}
+                onChange={(event) => setCity(event.target.value)}
+                placeholder="Ville, code postal ou département"
+                className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
+              />
+            </div>
+            <button
+              type="submit"
+              className="min-h-12 rounded-lg px-10 font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
+            >
+              Rechercher
+            </button>
+          </form>
+        </search>
 
         <nav
           aria-label="Catégories"
@@ -297,14 +312,13 @@ function Home() {
           </div>
         )}
         <div className="mt-2 text-center">
-          <button
-            type="button"
-            onClick={clearFilters}
+          <Link
+            to="/recherche"
             className="inline-flex gap-2 items-center rounded-lg border border-brand py-2 px-5 text-sm font-semibold text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
           >
             Voir toutes les annonces{' '}
             <ArrowRight aria-hidden="true" className="size-4" />
-          </button>
+          </Link>
         </div>
       </section>
 
