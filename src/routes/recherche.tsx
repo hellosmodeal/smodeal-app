@@ -53,7 +53,7 @@ function SearchPage() {
 
   return (
     <>
-      <section className="bg-[#faf7f2]">
+      <section className="bg-brand-surface">
         <div className="flex items-center justify-between max-w-7xl mx-auto p-5 sm:px-8">
           <div>
             <p className="font-heading text-3xl font-bold tracking-[-0.055em] sm:text-4xl lg:text-[2.75rem]">
@@ -68,9 +68,9 @@ function SearchPage() {
             className="overflow-hidden relative hidden h-[70px] w-[58px] lg:block"
           >
             <img
-              src="/brand/smodeal-logo.png"
+              src="/brand/smodeal-symbol.svg"
               alt=""
-              className="absolute h-35 max-w-none -top-[31px] -left-[40px]"
+              className="object-contain size-14"
             />
           </span>
         </div>

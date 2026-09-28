@@ -21,7 +21,7 @@ export type PageHead = {
   links: { rel: string; href: string }[]
 }
 
-const shareImagePath = '/og-image.png'
+const shareImagePath = '/og-image.png?v=20260928'
 
 export function resolveSeoConfig(
   publicSiteUrl: string | undefined,

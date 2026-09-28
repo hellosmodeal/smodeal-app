@@ -24,9 +24,9 @@ Ce périmètre sert de base au chiffrage et à la réalisation. Il ne constitue 
 
 Interface française responsive. Un formulaire commun à toutes les catégories. Le paiement et la remise du bien sont organisés directement entre les parties.
 
-**Règles proposées à confirmer :** expiration après 60 jours ; publication immédiate avec modération a posteriori. Aucun rappel automatique dans ce lot. Une annonce expirée reste visible dans l'espace de son propriétaire, qui confirme sa disponibilité pour la renouveler.
+**Règles retenues le 28 septembre 2026 :** expiration après 60 jours ; publication immédiate après validation des champs et photos, avec signalement et modération a posteriori opérationnels dès l'ouverture réelle. Email vérifié avant publication. Aucun rappel automatique dans ce lot. Une annonce expirée reste visible dans l'espace de son propriétaire, qui confirme sa disponibilité pour la renouveler.
 
-La règle de contact ci-dessus est la base du cadrage ; elle doit être confirmée avant développement. Les catégories et écrans principaux doivent également être validés.
+La règle de contact ci-dessus est retenue. Catégories V1 : Maison, Multimédia, Mode, Loisirs, Enfants, Jardin. Les écrans de publication, détail et compte restent à construire et à recetter. Voir [les décisions de lancement](decisions-lancement.md).
 
 ## Hors V1
 
