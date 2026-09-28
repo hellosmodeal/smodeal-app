@@ -4,6 +4,7 @@ import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
 import {
   canChangeListingStatus,
+  canEditListing,
   canManageListing,
   canRenewListing,
   computeExpiresAt,
@@ -38,6 +39,8 @@ export type UploadedPhoto = {
 }
 
 export type PublishListingInput = ListingInput & { photos: UploadedPhoto[] }
+export type ListingEditInput = Omit<ListingInput, 'phone' | 'displayConsent'>
+export type ListingForEditing = ListingEditInput & { id: string }
 
 type CurrentUser = { $id: string; emailVerification: boolean }
 
@@ -141,6 +144,20 @@ function toSellerListing(row: ListingRow) {
     publishedAt: row.publishedAt,
     expiresAt: row.expiresAt,
     photoIds: row.photoIds ?? [],
+  }
+}
+
+function toListingForEditing(row: ListingRow): ListingForEditing {
+  return {
+    id: row.$id,
+    title: row.title,
+    description: row.description,
+    categorySlug: row.categorySlug,
+    condition: row.condition,
+    priceCents: row.priceCents,
+    city: row.city,
+    postalCode: row.postalCode,
+    department: row.department,
   }
 }
 
@@ -284,6 +301,24 @@ async function ownedListing(
   return listing
 }
 
+async function editableListing(
+  id: string,
+  actorId: string,
+  tables: Tables,
+  databaseId: string,
+  transactionId?: string,
+): Promise<ListingRow> {
+  const listing = await tables.getRow({
+    databaseId,
+    tableId: LISTINGS_TABLE_ID,
+    rowId: id,
+    transactionId,
+  })
+  if (!canEditListing(listing, actorId))
+    throw new Error('Cette annonce ne peut pas être modifiée.')
+  return listing
+}
+
 export async function getSellerListings(
   after?: string,
   deps = dependencies(),
@@ -307,6 +342,56 @@ export async function getSellerListings(
   return {
     items: rows.slice(0, 25).map(toSellerListing),
     nextCursor: rows.length > 25 ? rows[24]?.$id : undefined,
+  }
+}
+
+export async function getListingForEditing(
+  id: string,
+  deps = dependencies(),
+): Promise<ListingForEditing> {
+  const user = await deps.getUser()
+  if (!user) throw new Error('Vous devez être connecté.')
+  const listing = await editableListing(
+    id,
+    user.$id,
+    deps.tables,
+    deps.databaseId,
+  )
+  return toListingForEditing(listing)
+}
+
+export async function updateListing(
+  id: string,
+  input: ListingEditInput,
+  deps = dependencies(),
+): Promise<void> {
+  const user = await deps.getUser()
+  requireVerifiedUser(user)
+  const transaction = await deps.tables.createTransaction({ ttl: 60 })
+  try {
+    await editableListing(
+      id,
+      user.$id,
+      deps.tables,
+      deps.databaseId,
+      transaction.$id,
+    )
+    await deps.tables.updateRow({
+      databaseId: deps.databaseId,
+      tableId: LISTINGS_TABLE_ID,
+      rowId: id,
+      data: input,
+      transactionId: transaction.$id,
+    })
+    await deps.tables.updateTransaction({
+      transactionId: transaction.$id,
+      commit: true,
+    })
+  } catch (error) {
+    await deps.tables
+      .updateTransaction({ transactionId: transaction.$id, rollback: true })
+      .catch(() => undefined)
+    throw error
   }
 }
 

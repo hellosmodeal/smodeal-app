@@ -2,11 +2,13 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import {
   changeListingStatus as changeListingStatusOnServer,
+  getListingForEditing as getListingForEditingOnServer,
   getSellerListings as getSellerListingsOnServer,
   type PublishListingInput,
   publishListing as publishListingOnServer,
   renewListing as renewListingOnServer,
   type UploadedPhoto,
+  updateListing as updateListingOnServer,
 } from './listings.server'
 import {
   LISTING_CATEGORIES,
@@ -16,6 +18,21 @@ import {
 
 const stringField = (message: string, max: number) =>
   z.string().trim().min(1, message).max(max, `Maximum ${max} caractères.`)
+
+const publicListingFieldsSchema = z.object({
+  title: stringField('Indiquez un titre.', 120),
+  description: stringField('Décrivez votre annonce.', 10_000),
+  categorySlug: z.enum(LISTING_CATEGORIES),
+  condition: z.enum(LISTING_CONDITIONS),
+  priceCents: z.coerce.number().int().min(0).max(2_000_000_000),
+  city: stringField('Indiquez une ville.', 120),
+  postalCode: z
+    .string()
+    .regex(/^\d{5}$/, 'Indiquez un code postal à 5 chiffres.'),
+  department: z
+    .string()
+    .regex(/^(\d{2}|2A|2B|97\d|98\d)$/, 'Indiquez un département valide.'),
+})
 
 const uploadSchema = z.custom<UploadedPhoto>(
   (value) =>
@@ -39,21 +56,7 @@ export const listingFormSchema = z
       .filter((value) => value instanceof File)
     return z
       .object({
-        title: stringField('Indiquez un titre.', 120),
-        description: stringField('Décrivez votre annonce.', 10_000),
-        categorySlug: z.enum(LISTING_CATEGORIES),
-        condition: z.enum(LISTING_CONDITIONS),
-        priceCents: z.coerce.number().int().min(0).max(2_000_000_000),
-        city: stringField('Indiquez une ville.', 120),
-        postalCode: z
-          .string()
-          .regex(/^\d{5}$/, 'Indiquez un code postal à 5 chiffres.'),
-        department: z
-          .string()
-          .regex(
-            /^(\d{2}|2A|2B|97\d|98\d)$/,
-            'Indiquez un département valide.',
-          ),
+        ...publicListingFieldsSchema.shape,
         phone: z
           .string()
           .trim()
@@ -89,6 +92,24 @@ export const publishListing = createServerFn({ method: 'POST' })
     async ({ data }): Promise<{ id: string }> => publishListingOnServer(data),
   )
 
+export const listingEditFormSchema = z
+  .custom<FormData>(
+    (value) => value instanceof FormData,
+    'Formulaire invalide.',
+  )
+  .transform((form) =>
+    publicListingFieldsSchema.parse({
+      title: form.get('title'),
+      description: form.get('description'),
+      categorySlug: form.get('categorySlug'),
+      condition: form.get('condition'),
+      priceCents: form.get('priceCents'),
+      city: form.get('city'),
+      postalCode: form.get('postalCode'),
+      department: form.get('department'),
+    }),
+  )
+
 const sellerListingsQuerySchema = z.object({
   after: z.string().min(1).optional(),
 })
@@ -119,3 +140,31 @@ const renewListingSchema = z.object({ id: z.string().min(1) })
 export const renewListing = createServerFn({ method: 'POST' })
   .inputValidator(renewListingSchema)
   .handler(async ({ data }): Promise<void> => renewListingOnServer(data.id))
+
+const listingIdSchema = z.object({ id: z.string().min(1) })
+
+export const getListingForEditing = createServerFn({ method: 'GET' })
+  .inputValidator(listingIdSchema)
+  .handler(
+    async ({
+      data,
+    }): Promise<Awaited<ReturnType<typeof getListingForEditingOnServer>>> =>
+      getListingForEditingOnServer(data.id),
+  )
+
+export const updateListing = createServerFn({ method: 'POST' })
+  .inputValidator(
+    z
+      .custom<FormData>(
+        (value) => value instanceof FormData,
+        'Formulaire invalide.',
+      )
+      .transform((form) => ({
+        id: z.string().min(1).parse(form.get('id')),
+        data: listingEditFormSchema.parse(form),
+      })),
+  )
+  .handler(
+    async ({ data }): Promise<void> =>
+      updateListingOnServer(data.id, data.data),
+  )

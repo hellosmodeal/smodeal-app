@@ -72,6 +72,13 @@ function SellerListingsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <Link
+                  to="/annonces/$listingId/modifier"
+                  params={{ listingId: listing.id }}
+                  className="text-sm underline"
+                >
+                  Modifier
+                </Link>
                 <button
                   type="button"
                   onClick={() => action(listing.id, 'sold')}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ListingLifecycle } from './rules'
 import {
   canChangeListingStatus,
+  canEditListing,
   canManageListing,
   canRenewListing,
   computeExpiresAt,
@@ -88,6 +89,22 @@ describe('canManageListing', () => {
       ),
     ).toBe(false)
   })
+})
+
+describe('canEditListing', () => {
+  it.each(['active', 'expired'] as const)(
+    'autorise le propriétaire à modifier une annonce %s',
+    (status) => {
+      expect(canEditListing(listing({ status }), 'seller-1')).toBe(true)
+    },
+  )
+
+  it.each(['sold', 'withdrawn', 'removed_by_moderation'] as const)(
+    'refuse la modification d’une annonce %s',
+    (status) => {
+      expect(canEditListing(listing({ status }), 'seller-1')).toBe(false)
+    },
+  )
 })
 
 describe('canRenewListing', () => {

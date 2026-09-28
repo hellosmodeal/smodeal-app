@@ -1,0 +1,158 @@
+name: smodeal-qa
+
+x-appwrite: &appwrite
+  image: appwrite/appwrite:2.3.0
+  env_file:
+    - appwrite.local
+  restart: unless-stopped
+  networks:
+    - appwrite
+  logging:
+    driver: json-file
+    options:
+      max-file: "3"
+      max-size: 10m
+
+services:
+  appwrite:
+    <<: *appwrite
+    ports:
+      - "127.0.0.1:18670:80"
+    volumes:
+      - uploads:/storage/uploads:rw
+      - imports:/storage/imports:rw
+      - cache:/storage/cache:rw
+      - config:/storage/config:rw
+      - certificates:/storage/certificates:rw
+      - functions:/storage/functions:rw
+      - sites:/storage/sites:rw
+      - builds:/storage/builds:rw
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      geo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null -H 'Host: localhost' http://localhost/v1/health/version"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+
+  worker:
+    <<: *appwrite
+    entrypoint: worker
+    volumes:
+      - uploads:/storage/uploads:rw
+      - imports:/storage/imports:rw
+      - cache:/storage/cache:rw
+      - config:/storage/config:rw
+      - certificates:/storage/certificates:rw
+      - functions:/storage/functions:rw
+      - sites:/storage/sites:rw
+      - builds:/storage/builds:rw
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    <<: *appwrite
+    entrypoint: schedule
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  geo:
+    image: appwrite/geo:0.3.1
+    environment:
+      GEO_SECRET: ${_APP_GEO_SECRET}
+    restart: unless-stopped
+    networks:
+      - appwrite
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit(json_decode(file_get_contents('http://localhost/v1/health'))->status === 'ok' ? 0 : 1);\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+
+  postgresql:
+    image: appwrite/postgres:0.1.0
+    environment:
+      POSTGRES_DB: ${_APP_DB_SCHEMA}
+      POSTGRES_USER: ${_APP_DB_USER}
+      POSTGRES_PASSWORD: ${_APP_DB_PASS}
+    restart: unless-stopped
+    networks:
+      - appwrite
+    volumes:
+      - postgresql:/var/lib/postgresql:rw
+    command: ["postgres"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  redis:
+    image: redis:7.4.7-alpine
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--maxmemory-samples", "5"]
+    restart: unless-stopped
+    networks:
+      - appwrite
+    volumes:
+      - redis:/data:rw
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  mailpit:
+    image: axllent/mailpit:v1.31.1
+    command: ["--smtp", "0.0.0.0:1025", "--listen", "0.0.0.0:8025", "--allowed-hosts", "localhost,127.0.0.1"]
+    ports:
+      - "127.0.0.1:18672:8025"
+    restart: unless-stopped
+    networks:
+      - appwrite
+    volumes:
+      - mailpit:/data:rw
+
+networks:
+  appwrite:
+    name: smodeal-qa
+    ipam:
+      config:
+        - subnet: 192.168.250.0/24
+
+volumes:
+  postgresql:
+    name: smodeal-qa_postgresql
+  redis:
+    name: smodeal-qa_redis
+  uploads:
+    name: smodeal-qa_uploads
+  imports:
+    name: smodeal-qa_imports
+  cache:
+    name: smodeal-qa_cache
+  config:
+    name: smodeal-qa_config
+  certificates:
+    name: smodeal-qa_certificates
+  functions:
+    name: smodeal-qa_functions
+  sites:
+    name: smodeal-qa_sites
+  builds:
+    name: smodeal-qa_builds
+  mailpit:
+    name: smodeal-qa_mailpit

@@ -62,7 +62,7 @@ Limiter les photos à cinq ; formats, poids et dimensions à fixer. Vérifier le
 
 Choisir l'hébergement SSR, le plan et la région Appwrite, le service d'email et le mécanisme planifié. Hébergement SSR proposé (non validé) : Appwrite Sites, framework TanStack Start, runtime Node 24, installation `corepack enable && pnpm install --frozen-lockfile`, build `pnpm build`, sortie `./.output`, déploiement depuis la branche `main` du dépôt GitHub. Documenter les environnements, secrets nécessaires sans leurs valeurs, sauvegardes, export et procédure de restauration des données et médias.
 
-La CI GitHub vérifie lint, classes Tailwind, types, tests métier, exports inutilisés et build. La recette des services externes et la restauration restent à effectuer.
+La CI GitHub vérifie lint, classes Tailwind, types, tests métier, exports inutilisés et build. Une première recette Auth/TablesDB/Storage et emails a réussi sur Appwrite/Mailpit locaux ; la recette complète et la restauration restent à effectuer. Voir `infra/qa/README.md`.
 
 ## Références officielles à consulter à l'initialisation
 

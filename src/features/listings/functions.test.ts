@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { listingFormSchema } from './functions'
+import { listingEditFormSchema, listingFormSchema } from './functions'
 
 describe('listingFormSchema', () => {
   it('autorise la publication sans accord de communication du téléphone', () => {
@@ -32,6 +32,23 @@ describe('listingFormSchema', () => {
     expect(() => listingFormSchema.parse(form)).toThrow(
       'Indiquez un numéro de téléphone valide.',
     )
+  })
+})
+
+describe('listingEditFormSchema', () => {
+  it('valide les seuls champs publics modifiables', () => {
+    const form = validForm()
+
+    expect(listingEditFormSchema.parse(form)).toEqual({
+      title: 'Lampe de bureau',
+      description: 'Une lampe en très bon état.',
+      categorySlug: 'maison',
+      condition: 'good',
+      priceCents: 2500,
+      city: 'Lyon',
+      postalCode: '69001',
+      department: '69',
+    })
   })
 })
 

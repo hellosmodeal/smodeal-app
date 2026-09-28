@@ -47,3 +47,59 @@ describe('parseServerEnv', () => {
     ).toThrow(/PUBLIC_SITE_URL/)
   })
 })
+
+const base = {
+  APPWRITE_ENDPOINT: 'http://127.0.0.1:18670/v1',
+  APPWRITE_PROJECT_ID: 'smodeal-qa',
+  APPWRITE_API_KEY: 'fictitious-qa-key',
+  APPWRITE_DATABASE_ID: 'smodeal',
+}
+
+describe('configuration des callbacks de recette', () => {
+  it('refuse un callback local si Appwrite est distant', () => {
+    expect(() =>
+      parseServerEnv({
+        ...base,
+        APPWRITE_ENDPOINT: 'https://fra.cloud.appwrite.io/v1',
+        NODE_ENV: 'development',
+        PUBLIC_SITE_URL: 'http://localhost:18671',
+      }),
+    ).toThrow('PUBLIC_SITE_URL')
+  })
+  it('autorise le serveur local HTTP en développement', () => {
+    expect(
+      parseServerEnv({
+        ...base,
+        NODE_ENV: 'development',
+        PUBLIC_SITE_URL: 'http://localhost:18671',
+      }).PUBLIC_SITE_URL,
+    ).toBe('http://localhost:18671')
+  })
+  it('interdit le serveur local HTTP en production', () => {
+    expect(() =>
+      parseServerEnv({
+        ...base,
+        NODE_ENV: 'production',
+        PUBLIC_SITE_URL: 'http://localhost:18671',
+      }),
+    ).toThrow('PUBLIC_SITE_URL')
+  })
+  it('interdit une origine HTTP distante même en développement', () => {
+    expect(() =>
+      parseServerEnv({
+        ...base,
+        NODE_ENV: 'development',
+        PUBLIC_SITE_URL: 'http://smodeal.com',
+      }),
+    ).toThrow('PUBLIC_SITE_URL')
+  })
+  it('conserve les origines HTTPS en production', () => {
+    expect(
+      parseServerEnv({
+        ...base,
+        NODE_ENV: 'production',
+        PUBLIC_SITE_URL: 'https://smodeal.com',
+      }).PUBLIC_SITE_URL,
+    ).toBe('https://smodeal.com')
+  })
+})

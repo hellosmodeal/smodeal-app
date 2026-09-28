@@ -16,6 +16,11 @@ function metaContent(
 }
 
 describe('resolveSeoConfig', () => {
+  it('reste en noindex avec une origine de callback locale configurée', () => {
+    expect(
+      resolveSeoConfig('http://localhost:18671', 'http://localhost:18671/'),
+    ).toEqual({ origin: 'http://localhost:18671', indexable: false })
+  })
   it("reste en noindex et utilise l'origine de la requête sans URL publique", () => {
     expect(
       resolveSeoConfig(undefined, 'http://localhost:8670/?q=velo'),

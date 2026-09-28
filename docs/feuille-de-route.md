@@ -43,7 +43,7 @@ Une confirmation déclarative ne prouve pas le paiement. L'absence de paiement i
 
 Accueil et recherche utilisent désormais Appwrite ; les données fictives sont réservées aux fixtures de tests. Les fiches publiques appliquent le statut actif et l’expiration. Les comptes disposent de parcours de vérification email et de récupération du mot de passe. Publication, vente, retrait, renouvellement et gestion paginée sont implémentés, ainsi que signalement et traitement administratif avec journal.
 
-Cette étape ne signifie pas ouverture aux vrais vendeurs : édition, instrumentation d’usage, contrôles anti-abus, recette des emails et mutations réelles, sauvegardes et validation légale restent à effectuer. Le domaine public conserve sa configuration précédente tant que la migration DNS est en attente. Voir [l’état V1](etat-v1.md).
+Cette étape ne signifie pas ouverture aux vrais vendeurs : instrumentation d’usage, contrôles anti-abus, recette des emails et mutations réelles, sauvegardes et validation légale restent à effectuer. Le domaine public conserve sa configuration précédente tant que la migration DNS est en attente. Voir [l’état V1](etat-v1.md).
 
 ## Tenue de la documentation
 

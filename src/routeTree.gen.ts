@@ -22,6 +22,7 @@ import { Route as AuthedDeposerRouteImport } from './routes/_authed/deposer'
 import { Route as AuthedMesAnnoncesRouteImport } from './routes/_authed/mes-annonces'
 import { Route as AuthedModerationRouteImport } from './routes/_authed/moderation'
 import { Route as AnnoncesListingIdRouteImport } from './routes/annonces/$listingId'
+import { Route as AuthedAnnoncesListingIdModifierRouteImport } from './routes/_authed/annonces/$listingId/modifier'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -87,6 +88,12 @@ const AnnoncesListingIdRoute = AnnoncesListingIdRouteImport.update({
   path: '/annonces/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedAnnoncesListingIdModifierRoute =
+  AuthedAnnoncesListingIdModifierRouteImport.update({
+    id: '/annonces/$listingId/modifier',
+    path: '/annonces/$listingId/modifier',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +140,7 @@ export interface FileRoutesById {
   '/_authed/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/_authed/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/_authed/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/annonces/$listingId/modifier'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/annonces/$listingId/modifier'
   id:
     | '__root__'
     | '/'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authed/mes-annonces'
     | '/_authed/moderation'
     | '/annonces/$listingId'
+    | '/_authed/annonces/$listingId/modifier'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnnoncesListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/annonces/$listingId/modifier': {
+      id: '/_authed/annonces/$listingId/modifier'
+      path: '/annonces/$listingId/modifier'
+      fullPath: '/annonces/$listingId/modifier'
+      preLoaderRoute: typeof AuthedAnnoncesListingIdModifierRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
@@ -291,6 +311,7 @@ interface AuthedRouteChildren {
   AuthedDeposerRoute: typeof AuthedDeposerRoute
   AuthedMesAnnoncesRoute: typeof AuthedMesAnnoncesRoute
   AuthedModerationRoute: typeof AuthedModerationRoute
+  AuthedAnnoncesListingIdModifierRoute: typeof AuthedAnnoncesListingIdModifierRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -298,6 +319,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDeposerRoute: AuthedDeposerRoute,
   AuthedMesAnnoncesRoute: AuthedMesAnnoncesRoute,
   AuthedModerationRoute: AuthedModerationRoute,
+  AuthedAnnoncesListingIdModifierRoute: AuthedAnnoncesListingIdModifierRoute,
 }
 
 const AuthedRouteWithChildren =

@@ -2,12 +2,25 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   changeListingStatus,
+  getListingForEditing,
   getSellerListings,
   type ListingDependencies,
   type PublishListingInput,
   publishListing,
   renewListing,
+  updateListing,
 } from './listings.server'
+
+const editInput = {
+  title: 'Lampe révisée',
+  description: 'Une lampe révisée en très bon état.',
+  categorySlug: 'maison' as const,
+  condition: 'like_new' as const,
+  priceCents: 3000,
+  city: 'Villeurbanne',
+  postalCode: '69100',
+  department: '69',
+}
 
 const input: PublishListingInput = {
   title: 'Lampe de bureau',
@@ -247,5 +260,69 @@ describe('getSellerListings', () => {
     expect(result.items).toHaveLength(25)
     expect(result.nextCursor).toBe('listing-24')
     expect(result.items[0]).not.toHaveProperty('phone')
+  })
+})
+
+describe('getListingForEditing', () => {
+  it('retourne seulement les données publiques de sa propre annonce', async () => {
+    const deps = dependencies()
+    deps.tables.getRow = vi.fn(async () => ({
+      $id: 'listing-1',
+      ownerId: 'seller-1',
+      status: 'active',
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      ...editInput,
+      photoIds: ['photo-1'],
+      publishedAt: '2026-10-01T00:00:00.000Z',
+    })) as never
+
+    await expect(getListingForEditing('listing-1', deps)).resolves.toEqual({
+      id: 'listing-1',
+      ...editInput,
+    })
+  })
+})
+
+describe('updateListing', () => {
+  it('met à jour les champs publics sans modifier le statut ni les dates', async () => {
+    const deps = dependencies()
+
+    await updateListing('listing-1', editInput, deps)
+
+    expect(deps.tables.updateRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: editInput,
+        transactionId: 'transaction-1',
+      }),
+    )
+  })
+
+  it('refuse la sauvegarde avec une adresse email non vérifiée', async () => {
+    const deps = dependencies({
+      getUser: vi.fn(async () => ({
+        $id: 'seller-1',
+        emailVerification: false,
+      })),
+    })
+
+    await expect(updateListing('listing-1', editInput, deps)).rejects.toThrow(
+      'Vérifiez votre adresse email',
+    )
+    expect(deps.tables.createTransaction).not.toHaveBeenCalled()
+  })
+
+  it('refuse la sauvegarde d’une annonce retirée par modération', async () => {
+    const deps = dependencies()
+    deps.tables.getRow = vi.fn(async () => ({
+      $id: 'listing-1',
+      ownerId: 'seller-1',
+      status: 'removed_by_moderation',
+      expiresAt: '2026-12-01T00:00:00.000Z',
+    })) as never
+
+    await expect(updateListing('listing-1', editInput, deps)).rejects.toThrow(
+      'ne peut pas être modifiée',
+    )
+    expect(deps.tables.updateRow).not.toHaveBeenCalled()
   })
 })

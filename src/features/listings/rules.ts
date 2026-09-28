@@ -106,6 +106,16 @@ export function canManageListing(
   )
 }
 
+export function canEditListing(
+  listing: ListingLifecycle,
+  actorId: string,
+): boolean {
+  return (
+    listing.ownerId === actorId &&
+    (listing.status === 'active' || listing.status === 'expired')
+  )
+}
+
 export function canRenewListing(
   listing: ListingLifecycle,
   actorId: string,

@@ -33,7 +33,10 @@ export function resolveSeoConfig(
 
   return {
     origin: isPublicHost ? publicSite.origin : request.origin,
-    indexable: isPublicHost,
+    indexable:
+      isPublicHost &&
+      publicSite.protocol === 'https:' &&
+      !['localhost', '127.0.0.1', '[::1]'].includes(publicSite.hostname),
   }
 }
 
