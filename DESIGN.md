@@ -1,6 +1,6 @@
 # Design de Smodeal
 
-Référence pour l'interface de la V1, au 27 septembre 2026. La direction visuelle actuelle a été validée : logo, palette, typographie et principes de l'accueil. Les écrans à construire et les livrables de marque encore nécessaires sont distingués ci-dessous.
+Référence pour l'interface de la V1, mise à jour le 28 septembre 2026. Les nouveaux retours remplacent la direction orange par un mot-symbole **Smodeal.fr bleu et gris**. La structure de l'accueil et Geist Variable sont conservées. La France reste le marché de lancement. Voir les [décisions de lancement](docs/decisions-lancement.md).
 
 ## Intention
 
@@ -12,18 +12,18 @@ La maquette d'accueil fournie le 27 septembre 2026 et le logo fourni dans `Downl
 
 | Sujet | État | Référence |
 | --- | --- | --- |
-| Nom « Smodeal » et symbole S orange suivi de « modeal » | Direction validée | [Identité visuelle](docs/identite-visuelle.md) |
+| Nom « Smodeal », mot-symbole « Smodeal.fr » bleu et gris | Retour client appliqué le 28 septembre 2026 | [Identité visuelle](docs/identite-visuelle.md) |
 | Accueil de petites annonces : recherche, catégories, annonces, invitation à vendre | Implémenté avec des données fictives | `src/routes/index.tsx` |
 | Palette et Geist Variable | Validés et intégrés | `src/styles.css` |
-| Logo et symbole vectoriels, variantes et règles d'espacement | À produire | [Feuille de route](docs/feuille-de-route.md) |
-| Catégories finales et annonces réelles | À définir et à raccorder | [Périmètre V1](docs/perimetre-v1.md) |
+| Logo et S vectoriels | Déclinaison en tracés intégrée ; variantes complémentaires à préparer | `public/brand/` |
+| Six catégories V1 et annonces réelles | Catégories retenues, données réelles à raccorder | [Périmètre V1](docs/perimetre-v1.md) |
 
 ## Marque et assets
 
 - Nom affiché : **Smodeal**, jamais « Smodial ».
-- Logo : symbole S orange à formes épaisses et coupes diagonales, suivi de « modeal » anthracite. Ne pas répéter le S dans le texte.
-- `public/brand/smodeal-logo.png` est le logo raster de référence actuellement utilisé. `public/brand/smodeal-symbol.png` et les icônes dans `public/` déclinent le symbole pour les petits formats. `public/og-image.png` sert aux aperçus de partage.
-- Garder les proportions du logo, un espace libre autour du symbole et une version lisible sur fond clair. Les dimensions minimales, variantes sombres et versions monochromes seront fixées avec le logo vectoriel final.
+- Logo : mot complet « Smodeal » bleu, extension « .fr » grise, graisse 800. Utiliser le S typographique seul en petit format.
+- `public/brand/smodeal-logo.svg` et `public/brand/smodeal-symbol.svg` sont des tracés vectoriels réalisés à partir de Geist, d'après la référence client. Les PNG sont des exports de compatibilité. `public/og-image.png` sert aux aperçus de partage.
+- Garder les proportions du logo et un espace libre autour. L'en-tête utilise une largeur de 112 px sur mobile et 176 px sur grand écran. Les autres variantes devront être vérifiées dans leur contexte.
 - Ne pas agrandir les petits exports raster pour en faire un logo principal.
 
 ## Système visuel validé
@@ -33,23 +33,24 @@ Les valeurs ci-dessous sont validées pour la V1 ; la source technique est `src/
 | Usage | Valeur actuelle | Rôle |
 | --- | --- | --- |
 | Fond principal | `#ffffff` | Surface de lecture et cartes |
-| Bandeau d'accueil | `#faf7f2` | Accueil chaleureux, sans concurrencer les annonces |
+| Bandeau d'accueil | `#f5f8ff` | Surface claire bleutée, sans concurrencer les annonces |
 | Texte principal | `#17191e` | Titres, prix, navigation et contraste |
-| Orange de marque | `#ff4b1f` | Logo, repère actif, bordures d'action, focus et icônes |
-| Orange d'interaction | `#ca3510` | Fond des boutons à texte blanc et texte orange sur fond clair |
-| Surface secondaire | `#f6f4f1` | Regroupement discret |
+| Bleu de marque | `#005bea` | Logo, boutons, texte de lien, repère actif, focus et icônes |
+| Bleu renforcé | `#004dcc` | Interaction renforcée et accents |
+| Gris du logo | `#737373` | Extension « .fr » |
+| Surface secondaire | `#f5f7fa` | Regroupement discret |
 | Texte secondaire | `#6b7280` | Métadonnées et descriptions |
 | Bordure | `#dde0e5` | Champs et séparations |
 
 Geist Variable est utilisée pour le texte et les titres. Les titres sont denses et affirmés ; les informations d'annonce restent faciles à parcourir. La largeur maximale de contenu est `max-w-7xl` avec des marges latérales adaptées au mobile. Les champs de recherche et leur bouton ont actuellement une hauteur minimale de 48 px ; les surfaces courantes ont un rayon proche de 10 px. Ces repères guident les nouveaux écrans de la V1.
 
-L'orange signale une action ou une sélection. Contraste (WCAG AA) : le blanc sur `#ff4b1f` n'atteint que 3,3:1, suffisant pour le logo, les icônes et les repères non textuels mais pas pour un libellé. Les boutons pleins à texte blanc utilisent donc `#ca3510` (5,2:1) et tout texte orange de taille courante aussi (5,2:1 sur blanc, 4,9:1 sur le bandeau crème) ; le survol assombrit légèrement le bouton. Les prix et titres restent anthracite pour préserver la hiérarchie. Éviter d'utiliser la couleur seule pour exprimer un état : ajouter un libellé, une icône ou un état accessible.
+Le bleu signale une action ou une sélection. Le blanc sur `#005bea` et le bleu sur blanc atteignent le contraste AA pour du texte courant ; le survol assombrit légèrement les boutons. Les prix et titres restent anthracite. Éviter d'utiliser la couleur seule pour exprimer un état : ajouter un libellé, une icône ou un état accessible.
 
 ## Principes d'interface
 
 1. **Montrer les biens avant le discours de marque.** Sur l'accueil, la recherche et les annonces doivent être visibles rapidement.
 2. **Aider à décider.** Une carte annonce présente d'abord la photo, puis le titre, le prix et le lieu. Le prix est immédiatement repérable.
-3. **Rester sobre.** Fonds clairs, bordures discrètes, peu d'effets et une seule action orange dominante par zone.
+3. **Rester sobre.** Fonds clairs, bordures discrètes, peu d'effets et une seule action bleue dominante par zone.
 4. **Rendre les états explicites.** Recherche vide, chargement, erreur, absence de résultat, succès de publication et annonce indisponible doivent être compréhensibles en français.
 5. **Préserver l'accès.** Navigation clavier, focus visible, labels de champs, alternatives textuelles, contraste et zones tactiles confortables sont requis sur chaque écran.
 
@@ -73,7 +74,7 @@ La grille passe d'une colonne sur mobile à deux sur tablette et quatre sur gran
 | --- | --- | --- |
 | Résultats de recherche | Reprendre barre de recherche, catégories, filtres, tri et cartes ; montrer le nombre de résultats et l'état vide | Implémenté avec des données fictives (`src/routes/recherche.tsx`) |
 | Détail d'une annonce | Photos et titre au premier plan, prix et lieu lisibles, informations vendeur et action de contact protégée | À construire |
-| Dépôt d'annonce | Formulaire progressif et clair : catégorie, description, prix, lieu, photos, vérification avant publication | À construire ; champs et catégories à confirmer |
+| Dépôt d'annonce | Formulaire progressif et clair : catégorie, description, prix, lieu, photos, vérification avant publication | À construire selon les décisions de lancement |
 | Connexion et inscription | Reprendre logo, typographie, couleurs, champs et états d'erreur du système | Routes fonctionnelles, habillage à rapprocher des maquettes |
 | Compte et annonces du vendeur | Accès aux annonces, statut et actions de gestion sans ambiguïté | Route de compte initiale ; reste à construire |
 
@@ -87,9 +88,9 @@ Rédiger en français courant : verbes d'action courts, catégories compréhensi
 
 ## Livrables et décisions encore ouverts
 
-- Fichiers vectoriels du logo et du symbole, variantes clair/sombre et règles d'espacement.
-- Vérification des contrastes sur chaque nouvel écran (boutons et textes orange traités sur les écrans existants).
-- Catégories et champs du formulaire de dépôt.
+- Variantes monochromes et sur fond sombre du logo, vérification des tailles et marges d'usage.
+- Vérification des contrastes sur chaque nouvel écran.
+- Implémentation du formulaire commun avec les catégories retenues dans les décisions de lancement.
 - Maquettes des résultats, du détail, du dépôt, de l'authentification et du compte après confrontation aux parcours V1.
 - Images réelles, règles de modération visuelle et visuels de remplacement.
 

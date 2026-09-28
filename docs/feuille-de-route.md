@@ -4,19 +4,21 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 
 ## Décisions avant développement
 
-- [ ] Confirmer catégories et formulaire commun.
-- [ ] Confirmer le contact téléphonique réservé aux membres connectés.
-- [ ] Valider l'expiration proposée à 60 jours.
-- [ ] Valider la publication immédiate et la modération a posteriori.
+- [x] Retenir les six catégories existantes et le formulaire commun (décision du 28 septembre 2026).
+- [x] Retenir le contact téléphonique réservé aux membres connectés avec accord du vendeur.
+- [x] Retenir une expiration à 60 jours et le renouvellement par le propriétaire.
+- [x] Retenir la publication immédiate après validation, avec signalement et modération dès l'ouverture réelle.
 - [ ] Fixer date cible, interlocuteur de validation et responsable de modération.
 - [ ] Arrêter les conditions commerciales et frais récurrents hors de ce dépôt.
 - [ ] Choisir hébergement SSR, plan et région Appwrite, email et sauvegardes. Proposé : Appwrite Sites (SSR, même
   projet Appwrite, région Francfort).
-- [x] Confirmer le domaine officiel : `https://smodeal.com` (`www` redirige), déjà servi par le site Appwrite
-  `smodeal-web` (branche `main`). Indexation active seulement avec `PUBLIC_SITE_URL` sur ce site.
+- [x] Retenir `https://smodeal.fr` comme domaine principal cible, avec `.com` conservé pour redirection.
+- [ ] Migrer DNS, HTTPS, canonique et redirections : le `.fr` redirige encore vers le `.com` actif. Voir [la migration](migration-domaine-fr.md).
 - [ ] Valider les écrans principaux et préparer les fichiers de marque définitifs.
 - [x] Valider la palette et la typographie utilisées sur la page d'accueil.
-- [ ] Remplacer le logo raster intégré par les fichiers vectoriels définitifs.
+- [x] Appliquer le retour bleu et le mot-symbole Smodeal.fr avec une déclinaison vectorielle.
+
+Les choix fonctionnels ci-dessus sont retenus pour guider la V1, pas encore implémentés. Voir [les décisions de lancement](decisions-lancement.md) pour l'ordre des lots et les critères de viabilité.
 
 ## Étapes de réalisation
 

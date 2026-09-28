@@ -1,36 +1,36 @@
 # Identité visuelle
 
-## Nom
+## Direction retenue le 28 septembre 2026
 
-**Smodeal**. Utiliser cette orthographe dans l'application, les contenus et la documentation. « Smodial » est une ancienne graphie à abandonner.
+Le retour client remplace la première direction orange : **mot-symbole « Smodeal.fr » bleu, extension « .fr » grise**, sur fond clair. Le nom de marque reste **Smodeal**. La V1 vise la France.
 
-## Direction validée
+Le logo fourni est une référence raster. La déclinaison intégrée utilise Geist Variable en graisse 800, convertie en tracés dans `public/brand/smodeal-logo.svg` : elle reste nette à toutes les tailles et ne dépend pas d'une police installée. C'est une adaptation de la référence, pas le fichier maître original du client. Le S seul sert aux formats réduits ; le symbole orange à coupes diagonales est abandonné.
 
-Le symbole orange en forme de S remplace la première lettre du nom : **[symbole S] + modeal**. Il peut aussi être utilisé seul pour le favicon, l'icône d'application ou les avatars de marque.
+## Palette et usages
 
-- Symbole compact, formes épaisses et coupes diagonales.
-- Texte « modeal » anthracite avec typographie dense.
-- Identité simple, professionnelle et rapidement reconnaissable.
-- Éviter de doubler le symbole par un second « s » dans le mot.
+| Usage | Couleur |
+| --- | --- |
+| Marque, boutons, liens et sélection | `#005bea` |
+| Interaction renforcée | `#004dcc` |
+| Extension du logo | `#737373` |
+| Surface du bandeau | `#f5f8ff` |
+| Surface secondaire | `#f5f7fa` |
+| Accent doux | `#eaf1ff` |
+| Texte principal | `#17191e` |
+
+Le blanc sur le bleu principal et le bleu sur blanc respectent le contraste AA pour du texte courant. Les tokens sont centralisés dans `src/styles.css`. La typographie de l'interface reste Geist Variable ; la structure de l'accueil de petites annonces est conservée.
 
 ## Fichiers intégrés
 
-Le logo raster fourni dans les maquettes du 27 septembre 2026 est intégré dans `public/brand/smodeal-logo.png`. Il sert de référence pour l'interface, mais ne remplace pas un fichier vectoriel final.
+- Logo et S vectoriels : `public/brand/smodeal-logo.svg`, `public/brand/smodeal-symbol.svg`.
+- Exports PNG de compatibilité dans `public/brand/`.
+- Favicon `.ico`, PNG 16/32 px, icône Apple 180 px, icônes Android 192/512 px.
+- Image de partage `public/og-image.png`, 1200 × 630 px, avec marque `.fr` et positionnement français.
 
-Le symbole S dérivé de cette direction existe en favicon (`.ico`, 16 et 32 px), icône Apple (180 px) et icônes Android (192 et 512 px). `public/og-image.png` est l'image de partage 1200 × 630 px. Ces exports restent des références raster.
+Les photos d'annonces restent des exemples fictifs. Leurs couleurs ne sont pas des couleurs de marque.
 
-## Fichiers à préparer
+## Domaine
 
-- Version vectorielle propre du logo complet et du symbole seul.
-- Exports sur fond transparent, versions monochromes et variantes pour fond clair/sombre.
-- Marges de protection et taille minimale après vérification de lisibilité.
+`smodeal.fr` devient le domaine principal cible. Au 28 septembre 2026, il redirige encore vers `smodeal.com`. Garder le domaine SEO actif en `.com` jusqu'au raccordement HTTPS du `.fr`, puis inverser la redirection et changer `PUBLIC_SITE_URL` dans Appwrite. Ne jamais publier de canonique vers un domaine qui redirige vers l'ancien site.
 
-La palette et Geist Variable sont validées pour la V1 ; leurs valeurs figurent dans [DESIGN.md](../DESIGN.md) et `src/styles.css`. Ne pas présenter une génération raster comme un fichier vectoriel final.
-
-## Direction visuelle validée pour la V1
-
-La page d'accueil suit la maquette fournie : fond blanc (`#ffffff`), bandeau crème clair, anthracite (`#17191e`) et orange vif (`#ff4b1f`). Un orange foncé (`#ca3510`) sert aux interactions et aux contrastes : fond des boutons à texte blanc et texte orange, pour respecter le contraste AA. Cette palette est validée pour la V1 et centralisée dans `src/styles.css`.
-
-La typographie courante et les titres reposent sur Geist Variable, déjà présent dans le projet. Les photos dans `public/images/` ont été générées pour illustrer des annonces fictives ; elles ne représentent pas des annonces réelles.
-
-Le logo raster dans l'en-tête devra être remplacé par le logo vectoriel final après production et vérification des proportions, des coupes diagonales, des marges et des variantes de fond.
+Voir [DESIGN.md](../DESIGN.md), [les décisions de lancement](decisions-lancement.md) et [la migration du domaine](migration-domaine-fr.md).

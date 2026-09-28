@@ -75,10 +75,10 @@ describe('buildPageHead', () => {
     })
 
     expect(metaContent(head, 'og:image')).toBe(
-      'http://localhost:8670/og-image.png',
+      'http://localhost:8670/og-image.png?v=20260928',
     )
     expect(metaContent(head, 'twitter:image')).toBe(
-      'http://localhost:8670/og-image.png',
+      'http://localhost:8670/og-image.png?v=20260928',
     )
   })
 

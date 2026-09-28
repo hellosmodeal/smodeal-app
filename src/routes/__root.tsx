@@ -28,30 +28,30 @@ export const Route = createRootRouteWithContext<{
           'Publiez un bien, recherchez une annonce et contactez son vendeur.',
       },
       { name: 'application-name', content: 'Smodeal' },
-      { name: 'theme-color', content: '#faf7f2' },
+      { name: 'theme-color', content: '#f5f8ff' },
       { name: 'robots', content: 'noindex, nofollow' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
-      { rel: 'icon', href: '/favicon.ico', sizes: 'any' },
+      { rel: 'icon', href: '/favicon.ico?v=20260928', sizes: 'any' },
       {
         rel: 'icon',
-        href: '/favicon-32x32.png',
+        href: '/favicon-32x32.png?v=20260928',
         type: 'image/png',
         sizes: '32x32',
       },
       {
         rel: 'icon',
-        href: '/favicon-16x16.png',
+        href: '/favicon-16x16.png?v=20260928',
         type: 'image/png',
         sizes: '16x16',
       },
       {
         rel: 'apple-touch-icon',
-        href: '/apple-touch-icon.png',
+        href: '/apple-touch-icon.png?v=20260928',
         sizes: '180x180',
       },
-      { rel: 'manifest', href: '/site.webmanifest' },
+      { rel: 'manifest', href: '/site.webmanifest?v=20260928' },
     ],
   }),
   shellComponent: RootDocument,
@@ -70,10 +70,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="antialiased bg-background text-foreground">
         <header className="relative z-10 border-b border-border/70 bg-card">
-          <div className="flex gap-6 items-center justify-between h-16 max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="flex gap-2 items-center justify-between h-16 max-w-7xl mx-auto px-4 sm:gap-6 sm:px-8">
             <Link
               to="/"
-              className="rounded-sm outline-offset-4"
+              className="shrink-0 rounded-sm outline-offset-4"
               aria-label="Smodeal, accueil"
             >
               <BrandMark />
@@ -87,7 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </a>
             )}
             <nav
-              className="flex gap-3 items-center text-sm font-medium sm:gap-6"
+              className="flex gap-2 shrink-0 items-center text-xs font-medium sm:gap-6 sm:text-sm"
               aria-label="Navigation principale"
             >
               {user ? (
@@ -106,13 +106,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                     to="/connexion"
                     className="rounded-sm text-foreground/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:text-foreground"
                   >
-                    Se connecter
+                    <span className="sm:hidden">Connexion</span>
+                    <span className="hidden sm:inline">Se connecter</span>
                   </Link>
                   <Link
                     to="/inscription"
-                    className="rounded-lg py-2.5 px-4 bg-brand-dark text-white transition-colors sm:px-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:brightness-90"
+                    className="rounded-lg py-2.5 px-3 bg-brand-dark text-white transition-colors sm:px-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:brightness-90"
                   >
-                    Créer un compte
+                    <span className="sm:hidden">S’inscrire</span>
+                    <span className="hidden sm:inline">Créer un compte</span>
                   </Link>
                 </>
               )}

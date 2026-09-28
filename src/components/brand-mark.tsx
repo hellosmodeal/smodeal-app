@@ -1,9 +1,11 @@
 export function BrandMark() {
   return (
     <img
-      src="/brand/smodeal-logo.png"
-      alt="Smodeal"
-      className="object-contain h-10 w-auto sm:h-12"
+      src="/brand/smodeal-logo.svg"
+      alt="Smodeal.fr"
+      width="5555"
+      height="792"
+      className="h-auto w-28 sm:w-44"
     />
   )
 }

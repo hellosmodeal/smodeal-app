@@ -92,9 +92,14 @@ Retirer une colonne du fichier peut la supprimer au push : relire le diff avant.
 
 ## Décisions encore ouvertes
 
-Valeurs du socle proposées, à confirmer (voir feuille de route) : expiration 60 jours, contact réservé aux membres
-connectés avec accord du vendeur, région Appwrite Francfort, photos jpg/png/webp ≤ 5 Mo lisibles publiquement,
-hébergement SSR sur Appwrite Sites, service d'email, mécanisme planifié. Ne pas présenter ces valeurs comme validées.
+Décisions V1 retenues le 28 septembre 2026 : France, six catégories existantes, formulaire commun, expiration
+60 jours, contact réservé aux membres connectés avec accord du vendeur, email vérifié avant publication.
+Ces parcours ne sont pas encore tous implémentés. Voir `docs/decisions-lancement.md`.
+
+Appwrite Sites sert déjà la production. Restent à préciser : séparation des environnements, plan/région,
+photos jpg/png/webp ≤ 5 Mo lisibles publiquement, email, sauvegardes et mécanisme planifié.
+Le domaine principal cible est `smodeal.fr` ; il redirige encore vers le `.com` actif. Ne pas changer le
+domaine canonique avant migration DNS/HTTPS. La marque utilise le mot-symbole Smodeal.fr bleu et gris.
 
 ## Conventions
 
