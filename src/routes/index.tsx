@@ -13,12 +13,13 @@ import {
   Shirt,
 } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
+import { findListings } from '@/features/search/functions'
 import {
-  filterPreviewListings,
-  type PreviewFilters,
-  previewCategories,
-} from '@/features/listings/home-preview'
-import { parseSearchCriteria } from '@/features/search/rules'
+  formatPrice,
+  formatPublishedAgo,
+  parseSearchCriteria,
+  searchCategories,
+} from '@/features/search/rules'
 import { getSeoConfig } from '@/features/seo/functions'
 import { buildPageHead } from '@/features/seo/rules'
 import { cn } from '@/lib/utils'
@@ -32,8 +33,14 @@ const homePage = {
 }
 
 export const Route = createFileRoute('/')({
-  loader: () => getSeoConfig(),
-  head: ({ loaderData }) => buildPageHead(homePage, loaderData),
+  loader: async () => {
+    const [seo, results] = await Promise.all([
+      getSeoConfig(),
+      findListings({ data: {} }),
+    ])
+    return { seo, results }
+  },
+  head: ({ loaderData }) => buildPageHead(homePage, loaderData?.seo),
   component: Home,
 })
 
@@ -47,15 +54,10 @@ const categoryIcons = {
 }
 
 function Home() {
+  const { results } = Route.useLoaderData()
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
-  const [filters, setFilters] = useState<PreviewFilters>({
-    keyword: '',
-    city: '',
-    category: '',
-    sort: 'recent',
-  })
-  const listings = filterPreviewListings(filters)
+  const listings = results.items
   const navigate = useNavigate()
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -65,15 +67,8 @@ function Home() {
       search: parseSearchCriteria({
         q: keyword,
         lieu: city,
-        categorie: filters.category,
       }),
     })
-  }
-
-  function clearFilters() {
-    setKeyword('')
-    setCity('')
-    setFilters({ keyword: '', city: '', category: '', sort: 'recent' })
   }
 
   return (
@@ -155,38 +150,30 @@ function Home() {
         >
           <button
             type="button"
-            aria-pressed={filters.category === ''}
-            onClick={() =>
-              setFilters((current) => ({ ...current, category: '' }))
-            }
+            onClick={() => void navigate({ to: '/recherche', search: {} })}
             className={cn(
               'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
-              filters.category === ''
-                ? 'border-brand text-brand-dark'
-                : 'border-transparent hover:text-brand-dark',
+              'border-brand text-brand-dark',
             )}
           >
             <Grid2X2 aria-hidden="true" className="size-5" />
             Tout
           </button>
-          {previewCategories.map((category) => {
+          {searchCategories.map((category) => {
             const Icon = categoryIcons[category.slug]
             return (
               <button
                 key={category.slug}
                 type="button"
-                aria-pressed={filters.category === category.slug}
                 onClick={() =>
-                  setFilters((current) => ({
-                    ...current,
-                    category: category.slug,
-                  }))
+                  void navigate({
+                    to: '/recherche',
+                    search: { categorie: category.slug },
+                  })
                 }
                 className={cn(
                   'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
-                  filters.category === category.slug
-                    ? 'border-brand text-brand-dark'
-                    : 'border-transparent hover:text-brand-dark',
+                  'border-transparent hover:text-brand-dark',
                 )}
               >
                 <Icon aria-hidden="true" className="size-5" />
@@ -211,66 +198,8 @@ function Home() {
               Les dernières annonces
             </h2>
             <span className="text-xs text-muted-foreground">
-              Exemples fictifs
+              {results.total} annonce{results.total > 1 ? 's' : ''}
             </span>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <label className="sr-only" htmlFor="min-price">
-              Prix minimum
-            </label>
-            <input
-              id="min-price"
-              type="number"
-              min="0"
-              placeholder="Prix min. €"
-              value={filters.minPrice ?? ''}
-              onChange={(event) =>
-                setFilters((current) => ({
-                  ...current,
-                  minPrice: event.target.value
-                    ? Number(event.target.value)
-                    : undefined,
-                }))
-              }
-              className="w-32 rounded-lg border border-border outline-brand py-2 px-3 text-sm bg-card"
-            />
-            <label className="sr-only" htmlFor="max-price">
-              Prix maximum
-            </label>
-            <input
-              id="max-price"
-              type="number"
-              min="0"
-              placeholder="Prix max. €"
-              value={filters.maxPrice ?? ''}
-              onChange={(event) =>
-                setFilters((current) => ({
-                  ...current,
-                  maxPrice: event.target.value
-                    ? Number(event.target.value)
-                    : undefined,
-                }))
-              }
-              className="w-32 rounded-lg border border-border outline-brand py-2 px-3 text-sm bg-card"
-            />
-            <label className="sr-only" htmlFor="sort-listings">
-              Trier les annonces
-            </label>
-            <select
-              id="sort-listings"
-              value={filters.sort}
-              onChange={(event) =>
-                setFilters((current) => ({
-                  ...current,
-                  sort: event.target.value as PreviewFilters['sort'],
-                }))
-              }
-              className="rounded-lg border border-border outline-brand py-2 px-3 text-sm bg-card"
-            >
-              <option value="recent">Plus récentes</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
-            </select>
           </div>
         </div>
         <p aria-live="polite" className="sr-only">
@@ -281,17 +210,36 @@ function Home() {
           <div className="grid gap-y-3 gap-x-4 grid-cols-1 mt-4 sm:grid-cols-2 lg:grid-cols-4">
             {listings.map((listing) => (
               <article key={listing.id}>
-                <img
-                  src={listing.image}
-                  alt={listing.title}
-                  loading="lazy"
-                  className="object-cover aspect-[1.65] w-full rounded-lg"
-                />
-                <h3 className="mt-2 text-sm font-semibold">{listing.title}</h3>
-                <p className="text-lg font-bold">{listing.price} €</p>
-                <p className="text-sm text-muted-foreground">
-                  {listing.city} · {listing.time}
-                </p>
+                <Link
+                  to="/annonces/$listingId"
+                  params={{ listingId: listing.id }}
+                >
+                  {listing.image ? (
+                    <img
+                      src={listing.image}
+                      alt={listing.title}
+                      loading="lazy"
+                      className="object-cover aspect-[1.65] w-full rounded-lg"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center aspect-[1.65] w-full rounded-lg text-sm bg-muted text-muted-foreground">
+                      Pas de photo
+                    </div>
+                  )}
+                  <h3 className="mt-2 text-sm font-semibold">
+                    {listing.title}
+                  </h3>
+                  <p className="text-lg font-bold">
+                    {formatPrice(listing.priceCents)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {listing.city} ·{' '}
+                    {formatPublishedAgo(
+                      listing.publishedAt,
+                      new Date(results.generatedAt),
+                    )}
+                  </p>
+                </Link>
               </article>
             ))}
           </div>
@@ -301,14 +249,9 @@ function Home() {
               aria-hidden="true"
               className="size-8 mx-auto text-brand"
             />
-            <p className="mt-3 font-semibold">Aucune annonce ne correspond</p>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="rounded-lg border border-brand mt-3 py-2 px-4 text-sm font-semibold text-brand-dark hover:bg-accent"
-            >
-              Effacer les filtres
-            </button>
+            <p className="mt-3 font-semibold">
+              Aucune annonce disponible pour le moment
+            </p>
           </div>
         )}
         <div className="mt-2 text-center">

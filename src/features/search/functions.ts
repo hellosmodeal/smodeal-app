@@ -1,17 +1,17 @@
 import { createServerFn } from '@tanstack/react-start'
-import { buildDemoListings } from './demo-listings'
+import { z } from 'zod'
+import { getPublicListing, listPublicListings } from './listings.server'
 import {
   listDepartments,
   parseSearchCriteria,
-  type SearchListing,
+  requiresLongerKeyword,
   type SearchResults,
-  searchListings,
 } from './rules'
 
 export type SearchPageData = SearchResults & {
   departments: { code: string; name: string }[]
   generatedAt: string
-  isDemo: true
+  keywordTooShort: boolean
 }
 
 export const findListings = createServerFn({ method: 'GET' })
@@ -22,13 +22,30 @@ export const findListings = createServerFn({ method: 'GET' })
         : {},
     ),
   )
-  .handler(({ data }): SearchPageData => {
+  .handler(async ({ data }): Promise<SearchPageData> => {
     const now = new Date()
-    const listings: SearchListing[] = buildDemoListings(now)
+    if (requiresLongerKeyword(data)) {
+      return {
+        items: [],
+        total: 0,
+        page: 1,
+        pageCount: 1,
+        departments: [],
+        generatedAt: now.toISOString(),
+        keywordTooShort: true,
+      }
+    }
+    const results = await listPublicListings(data, now)
     return {
-      ...searchListings(listings, data),
-      departments: listDepartments(listings),
+      ...results,
+      departments: listDepartments(results.items),
       generatedAt: now.toISOString(),
-      isDemo: true,
+      keywordTooShort: false,
     }
   })
+
+export const findPublicListing = createServerFn({ method: 'GET' })
+  .inputValidator(
+    z.object({ listingId: z.string().regex(/^[A-Za-z0-9._-]{1,36}$/) }),
+  )
+  .handler(async ({ data }) => getPublicListing(data.listingId, new Date()))

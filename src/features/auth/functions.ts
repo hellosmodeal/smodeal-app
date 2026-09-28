@@ -1,8 +1,16 @@
 import { redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { AppwriteException, ID } from 'node-appwrite'
 import { z } from 'zod'
-
+import { getServerEnv } from '@/server/env.server'
+import {
+  appwriteErrorCode,
+  completeEmailVerification,
+  completePasswordRecovery,
+  createAccountAndSession,
+  createEmailPasswordSession,
+  requestPasswordRecovery,
+  sendEmailVerification,
+} from './auth.server'
 import { isAdmin } from './rules'
 import {
   adminClient,
@@ -22,6 +30,8 @@ export type CurrentUser = {
 
 export type AuthResult = { ok: true } | { ok: false; message: string }
 
+export type RecoveryRequestResult = { ok: true; message: string }
+
 const credentialsSchema = z.object({
   email: z.email(),
   password: z.string().min(8).max(256),
@@ -31,16 +41,37 @@ const signUpSchema = credentialsSchema.extend({
   name: z.string().trim().min(2).max(40),
 })
 
+const tokenSchema = z.object({
+  userId: z.string().min(1).max(36),
+  secret: z.string().min(1).max(256),
+})
+
+const resetPasswordSchema = tokenSchema.extend({
+  password: z.string().min(8).max(256),
+})
+
+const recoverySchema = z.object({ email: z.email() })
+
 function toAuthError(error: unknown, fallback: string): AuthResult {
-  if (error instanceof AppwriteException) {
-    if (error.code === 401)
-      return { ok: false, message: 'Identifiants invalides.' }
-    if (error.code === 409)
+  const code = appwriteErrorCode(error)
+  if (code) {
+    if (code === 401) return { ok: false, message: 'Identifiants invalides.' }
+    if (code === 409)
       return { ok: false, message: 'Un compte existe déjà avec cet email.' }
-    if (error.code === 429)
+    if (code === 429)
       return { ok: false, message: 'Trop de tentatives, réessayez plus tard.' }
   }
   return { ok: false, message: fallback }
+}
+
+function toTokenError(error: unknown): AuthResult {
+  if (appwriteErrorCode(error) === 429) {
+    return { ok: false, message: 'Trop de tentatives, réessayez plus tard.' }
+  }
+  return {
+    ok: false,
+    message: 'Ce lien est invalide ou expiré. Demandez-en un nouveau.',
+  }
 }
 
 export const getCurrentUser = createServerFn({ method: 'GET' }).handler(
@@ -61,8 +92,10 @@ export const signIn = createServerFn({ method: 'POST' })
   .inputValidator(credentialsSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
-      const session =
-        await adminClient().account.createEmailPasswordSession(data)
+      const session = await createEmailPasswordSession(
+        adminClient().account,
+        data,
+      )
       persistSession(session)
       return { ok: true }
     } catch (error) {
@@ -74,12 +107,7 @@ export const signUp = createServerFn({ method: 'POST' })
   .inputValidator(signUpSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
-      const { account } = adminClient()
-      await account.create({ userId: ID.unique(), ...data })
-      const session = await account.createEmailPasswordSession({
-        email: data.email,
-        password: data.password,
-      })
+      const session = await createAccountAndSession(adminClient().account, data)
       persistSession(session)
       return { ok: true }
     } catch (error) {
@@ -97,3 +125,66 @@ export const signOut = createServerFn({ method: 'POST' }).handler(async () => {
   clearSession()
   throw redirect({ to: '/' })
 })
+
+export const requestEmailVerification = createServerFn({
+  method: 'POST',
+}).handler(async (): Promise<AuthResult> => {
+  const client = sessionClient()
+  if (!client) {
+    return { ok: false, message: 'Connectez-vous pour vérifier votre email.' }
+  }
+
+  try {
+    await sendEmailVerification(client.account, getServerEnv().PUBLIC_SITE_URL)
+    return { ok: true }
+  } catch (error) {
+    return toAuthError(error, 'Envoi impossible pour le moment.')
+  }
+})
+
+export const verifyEmail = createServerFn({ method: 'POST' })
+  .inputValidator(tokenSchema)
+  .handler(async ({ data }): Promise<AuthResult> => {
+    try {
+      await completeEmailVerification(
+        adminClient().account,
+        data.userId,
+        data.secret,
+      )
+      return { ok: true }
+    } catch (error) {
+      return toTokenError(error)
+    }
+  })
+
+export const requestPasswordReset = createServerFn({ method: 'POST' })
+  .inputValidator(recoverySchema)
+  .handler(async ({ data }): Promise<RecoveryRequestResult> => {
+    await requestPasswordRecovery(
+      adminClient().account,
+      data.email,
+      getServerEnv().PUBLIC_SITE_URL,
+    )
+
+    return {
+      ok: true,
+      message:
+        'Si un compte correspond à cette adresse, un lien de réinitialisation vient d’être envoyé.',
+    }
+  })
+
+export const resetPassword = createServerFn({ method: 'POST' })
+  .inputValidator(resetPasswordSchema)
+  .handler(async ({ data }): Promise<AuthResult> => {
+    try {
+      await completePasswordRecovery(
+        adminClient().account,
+        data.userId,
+        data.secret,
+        data.password,
+      )
+      return { ok: true }
+    } catch (error) {
+      return toTokenError(error)
+    }
+  })

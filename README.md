@@ -2,7 +2,7 @@
 
 Plateforme française de petites annonces entre particuliers : **publier un bien, le rechercher et contacter son vendeur**.
 
-> État du projet : socle technique initialisé (TanStack Start, Appwrite, authentification). Les parcours métier restent à construire.
+> État du projet : comptes, publication, gestion vendeur, découverte et signalement implémentés dans le code. La recette complète avec emails et mutations Appwrite reste à réaliser avant ouverture aux vrais vendeurs. Voir [l’état de la V1](docs/etat-v1.md).
 
 ## Première version
 
@@ -30,6 +30,7 @@ Le plan Appwrite reste à définir ; l'hébergement proposé pour le serveur web
 | [Identité visuelle](docs/identite-visuelle.md) | Nom et direction du logo validés |
 | [Design](DESIGN.md) | Direction visuelle validée pour la V1, écrans à construire et livrables de marque |
 | [Décisions de lancement](docs/decisions-lancement.md) | V1 française, choix produit et mesure de viabilité |
+| [État V1](docs/etat-v1.md) | Parcours implémentés, limites et recette restante |
 | [Migration .fr](docs/migration-domaine-fr.md) | Domaine cible et séquence DNS/HTTPS/SEO |
 
 ## Développement
@@ -45,7 +46,7 @@ pnpm dev               # http://localhost:8670
 Le schéma Appwrite est déclaré dans `appwrite.config.json` et se pousse avec la CLI Appwrite :
 `appwrite push tables` puis `appwrite push buckets`.
 
-Le domaine principal cible est `https://smodeal.fr`. Il redirige encore vers le domaine actif `https://smodeal.com` : suivre la [migration](docs/migration-domaine-fr.md) avant de changer la configuration. En production, `PUBLIC_SITE_URL` reste l'origine du domaine qui sert directement le site, dans Appwrite ; en local, la laisser vide. L'indexation et les liens canoniques ne s'activent que si la variable est renseignée **et** que la requête vise exactement cet hôte : les domaines de prévisualisation et le poste local restent en `noindex`. Les pages de connexion, d'inscription, de compte et de résultats fictifs restent hors indexation.
+Le domaine principal cible est `https://smodeal.fr`. Il redirige encore vers le domaine actif `https://smodeal.com` : suivre la [migration](docs/migration-domaine-fr.md) avant de changer la configuration. En production, `PUBLIC_SITE_URL` reste l'origine du domaine qui sert directement le site, dans Appwrite ; en local, la laisser vide pour le travail visuel. Pour recetter les emails, utiliser une prévisualisation HTTPS disposant de ces routes et configurer son origine approuvée dans `PUBLIC_SITE_URL`. L'indexation et les liens canoniques ne s'activent que si la variable est renseignée **et** que la requête vise exactement cet hôte : les domaines de prévisualisation et le poste local restent en `noindex`. Les pages de connexion, d'inscription, de compte et de résultats de recherche restent hors indexation.
 
 | Commande | Rôle |
 | --- | --- |

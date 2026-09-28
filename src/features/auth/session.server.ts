@@ -11,7 +11,7 @@ import {
   createSessionClient,
 } from '@/server/appwrite.server'
 import { getServerEnv } from '@/server/env.server'
-import { sessionCookieName, sessionCookieOptions } from './rules'
+import { isActiveUser, sessionCookieName, sessionCookieOptions } from './rules'
 
 function cookieName() {
   return sessionCookieName(getServerEnv().APPWRITE_PROJECT_ID)
@@ -48,7 +48,8 @@ export async function loadCurrentUser() {
   const client = sessionClient()
   if (!client) return null
   try {
-    return await client.account.get()
+    const user = await client.account.get()
+    return isActiveUser(user) ? user : null
   } catch (error) {
     if (error instanceof AppwriteException && error.code === 401) return null
     throw error

@@ -42,14 +42,20 @@ function ResultCard({ listing, now }: { listing: SearchListing; now: Date }) {
           Pas de photo
         </div>
       )}
-      <h3 className="mt-2 text-sm font-semibold">{listing.title}</h3>
-      <p className="text-lg font-bold">{formatPrice(listing.priceCents)}</p>
-      <p className="text-sm text-muted-foreground">
-        {listing.city} ·{' '}
-        <time dateTime={listing.publishedAt}>
-          {formatPublishedAgo(listing.publishedAt, now)}
-        </time>
-      </p>
+      <Link
+        to="/annonces/$listingId"
+        params={{ listingId: listing.id }}
+        className="block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        <h3 className="mt-2 text-sm font-semibold">{listing.title}</h3>
+        <p className="text-lg font-bold">{formatPrice(listing.priceCents)}</p>
+        <p className="text-sm text-muted-foreground">
+          {listing.city} ·{' '}
+          <time dateTime={listing.publishedAt}>
+            {formatPublishedAgo(listing.publishedAt, now)}
+          </time>
+        </p>
+      </Link>
     </article>
   )
 }

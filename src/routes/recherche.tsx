@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Info } from 'lucide-react'
 import { CategoryTabs } from '@/features/search/components/category-tabs'
 import { SearchBar } from '@/features/search/components/search-bar'
 import {
@@ -95,23 +94,17 @@ function SearchPage() {
               </h1>
               <p aria-live="polite" className="text-sm text-muted-foreground">
                 {count}
-                {results.isDemo && ' · exemples fictifs'}
               </p>
             </div>
             <SortSelect criteria={criteria} />
           </div>
 
-          {results.isDemo && (
-            <p className="flex gap-3 items-start rounded-lg mt-4 py-3 px-4 text-sm bg-muted text-muted-foreground">
-              <Info aria-hidden="true" className="shrink-0 size-5 mt-px" />
-              Ces annonces sont des exemples fictifs pour tester la recherche.
-              Les annonces réelles apparaîtront une fois le service de données
-              raccordé.
-            </p>
-          )}
-
           <div className="mt-5">
-            {results.items.length > 0 ? (
+            {results.keywordTooShort ? (
+              <p className="rounded-lg border border-dashed border-border py-8 px-6 text-center text-sm text-muted-foreground">
+                Saisissez au moins 3 caractères pour rechercher par mot-clé.
+              </p>
+            ) : results.items.length > 0 ? (
               <ResultsGrid
                 items={results.items}
                 now={new Date(results.generatedAt)}

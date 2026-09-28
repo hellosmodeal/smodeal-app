@@ -5,6 +5,7 @@ import {
   formatPublishedAgo,
   listDepartments,
   parseSearchCriteria,
+  requiresLongerKeyword,
   type SearchListing,
   searchListings,
 } from './rules'
@@ -105,6 +106,12 @@ describe('parseSearchCriteria', () => {
     expect(parseSearchCriteria({ departement: '2a' })).toEqual({
       departement: '2A',
     })
+  })
+
+  it('conserve un mot-clé court afin d’afficher une aide plutôt que toutes les annonces', () => {
+    const criteria = parseSearchCriteria({ q: 'TV' })
+    expect(criteria).toEqual({ q: 'TV' })
+    expect(requiresLongerKeyword(criteria)).toBe(true)
   })
 })
 

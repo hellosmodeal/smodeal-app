@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { ListingLifecycle } from './rules'
 import {
+  canChangeListingStatus,
   canManageListing,
   canRenewListing,
   computeExpiresAt,
+  hasExpectedPhotoSignature,
   isPubliclyVisible,
+  photoValidationMessage,
 } from './rules'
 
 const now = new Date('2026-10-01T12:00:00.000Z')
@@ -23,6 +26,26 @@ describe('computeExpiresAt', () => {
     expect(computeExpiresAt(new Date('2026-10-01T12:00:00.000Z'))).toBe(
       '2026-11-30T12:00:00.000Z',
     )
+  })
+})
+
+describe('hasExpectedPhotoSignature', () => {
+  it('refuse du contenu HTML déguisé en image PNG', () => {
+    expect(
+      hasExpectedPhotoSignature(
+        new TextEncoder().encode('<html>contenu non image</html>'),
+        'image/png',
+      ),
+    ).toBe(false)
+  })
+
+  it('accepte la signature PNG', () => {
+    expect(
+      hasExpectedPhotoSignature(
+        new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        'image/png',
+      ),
+    ).toBe(true)
   })
 })
 
@@ -100,4 +123,36 @@ describe('canRenewListing', () => {
       expect(canRenewListing(listing({ status }), 'seller-1', now)).toBe(false)
     },
   )
+})
+
+describe('photoValidationMessage', () => {
+  it('accepte une photo WebP de moins de 5 Mo', () => {
+    expect(
+      photoValidationMessage({
+        name: 'lampe.webp',
+        type: 'image/webp',
+        size: 42,
+      }),
+    ).toBeNull()
+  })
+
+  it('refuse un format de photo non pris en charge', () => {
+    expect(
+      photoValidationMessage({
+        name: 'lampe.gif',
+        type: 'image/gif',
+        size: 42,
+      }),
+    ).toBe('Les photos doivent être au format JPG, PNG ou WebP.')
+  })
+})
+
+describe('canChangeListingStatus', () => {
+  it('autorise le vendeur à marquer son annonce active comme vendue', () => {
+    expect(canChangeListingStatus(listing(), 'seller-1')).toBe(true)
+  })
+
+  it('refuse le changement de statut demandé par un autre membre', () => {
+    expect(canChangeListingStatus(listing(), 'seller-2')).toBe(false)
+  })
 })

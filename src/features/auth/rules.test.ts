@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { isAdmin, sessionCookieName, sessionCookieOptions } from './rules'
+import {
+  callbackUrl,
+  isActiveUser,
+  isAdmin,
+  isSafeInternalPath,
+  sessionCookieName,
+  sessionCookieOptions,
+} from './rules'
 
 describe('sessionCookieName', () => {
   it('suit la convention Appwrite a_session_<projet>', () => {
@@ -35,5 +42,47 @@ describe('isAdmin', () => {
 
   it('refuse un membre sans libellé admin', () => {
     expect(isAdmin({ labels: ['beta'] })).toBe(false)
+  })
+})
+
+describe('isActiveUser', () => {
+  it('refuse une session dont le compte est suspendu', () => {
+    expect(isActiveUser({ status: false })).toBe(false)
+  })
+
+  it('accepte un compte actif', () => {
+    expect(isActiveUser({ status: true })).toBe(true)
+  })
+})
+
+describe('callbackUrl', () => {
+  it('construit un retour sur l’origine publique configurée', () => {
+    expect(callbackUrl('https://smodeal.fr', '/verification-email')).toBe(
+      'https://smodeal.fr/verification-email',
+    )
+  })
+
+  it('refuse d’envoyer un lien si aucune origine publique n’est configurée', () => {
+    expect(() => callbackUrl(undefined, '/verification-email')).toThrow(
+      'PUBLIC_SITE_URL',
+    )
+  })
+})
+
+describe('isSafeInternalPath', () => {
+  it('accepte un chemin local', () => {
+    expect(isSafeInternalPath('/compte')).toBe(true)
+  })
+
+  it('refuse les URL de protocole relatif', () => {
+    expect(isSafeInternalPath('//exemple.fr')).toBe(false)
+  })
+
+  it('refuse les barres obliques inverses et les caractères de contrôle', () => {
+    expect(isSafeInternalPath('/\\\\exemple.fr')).toBe(false)
+    expect(isSafeInternalPath('/%5cexemple.fr')).toBe(false)
+    expect(isSafeInternalPath('/%0d%0aLocation:%20https://exemple.fr')).toBe(
+      false,
+    )
   })
 })

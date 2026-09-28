@@ -85,6 +85,10 @@ export function parseSearchCriteria(
   ) as SearchCriteria
 }
 
+export function requiresLongerKeyword(criteria: SearchCriteria): boolean {
+  return Boolean(criteria.q && criteria.q.length < 3)
+}
+
 function normalize(value: string) {
   return value
     .normalize('NFD')

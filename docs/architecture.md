@@ -13,7 +13,7 @@
 
 Annonces publiques rendues côté serveur ; filtres dans l'URL. Administration métier dans l'application. Better Auth et backend Python séparé hors V1.
 
-Les éléments ci-dessous décrivent une **architecture proposée**, pas une implémentation existante. Les versions et détails d'intégration seront vérifiés lors de l'initialisation.
+Le socle et les premières tranches sont implémentés ; les limites de réception figurent dans [l’état V1](etat-v1.md). Les éléments d’exploitation non réalisés restent proposés.
 
 ## Répartition des responsabilités
 
@@ -62,7 +62,7 @@ Limiter les photos à cinq ; formats, poids et dimensions à fixer. Vérifier le
 
 Choisir l'hébergement SSR, le plan et la région Appwrite, le service d'email et le mécanisme planifié. Hébergement SSR proposé (non validé) : Appwrite Sites, framework TanStack Start, runtime Node 24, installation `corepack enable && pnpm install --frozen-lockfile`, build `pnpm build`, sortie `./.output`, déploiement depuis la branche `main` du dépôt GitHub. Documenter les environnements, secrets nécessaires sans leurs valeurs, sauvegardes, export et procédure de restauration des données et médias.
 
-La CI devra vérifier le build et les parcours critiques : droits, publication, recherche, accès au contact, expiration et modération. Aucun pipeline n'est encore installé.
+La CI GitHub vérifie lint, classes Tailwind, types, tests métier, exports inutilisés et build. La recette des services externes et la restauration restent à effectuer.
 
 ## Références officielles à consulter à l'initialisation
 

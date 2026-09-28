@@ -18,7 +18,7 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 - [x] Valider la palette et la typographie utilisées sur la page d'accueil.
 - [x] Appliquer le retour bleu et le mot-symbole Smodeal.fr avec une déclinaison vectorielle.
 
-Les choix fonctionnels ci-dessus sont retenus pour guider la V1, pas encore implémentés. Voir [les décisions de lancement](decisions-lancement.md) pour l'ordre des lots et les critères de viabilité.
+Les choix fonctionnels ci-dessus guident la V1. Les premières tranches sont implémentées dans le code ; leur recette complète reste ouverte, voir [l’état V1](etat-v1.md). Voir [les décisions de lancement](decisions-lancement.md) pour l'ordre des lots et les critères de viabilité.
 
 ## Étapes de réalisation
 
@@ -39,11 +39,11 @@ Les choix fonctionnels ci-dessus sont retenus pour guider la V1, pas encore impl
 
 Une confirmation déclarative ne prouve pas le paiement. L'absence de paiement intégré dans la V1 ne permet pas de prélever automatiquement une commission.
 
-## État de la page d'accueil
+## État du code de la V1
 
-Une première version responsive de la direction artistique et de la page d'accueil est intégrée. Elle montre la structure d'un accueil de petites annonces : recherche, catégories, cartes d'annonces et accès à l'inscription. Les cartes, prix et lieux sont des exemples fictifs explicitement signalés dans l'interface ; la recherche filtre ces exemples pour permettre de tester la maquette. Les annonces réelles, catégories validées et filtres complets seront raccordés à l'étape « Découverte », une fois les données et les routes de consultation disponibles.
+Accueil et recherche utilisent désormais Appwrite ; les données fictives sont réservées aux fixtures de tests. Les fiches publiques appliquent le statut actif et l’expiration. Les comptes disposent de parcours de vérification email et de récupération du mot de passe. Publication, vente, retrait, renouvellement et gestion paginée sont implémentés, ainsi que signalement et traitement administratif avec journal.
 
-La page de résultats de recherche (`/recherche`) est implémentée sur le même échantillon fictif : mot-clé, lieu (ville, code postal ou département), catégorie, département, prix, tri et pagination sont portés par l'URL et appliqués côté serveur par `src/features/search/rules.ts`. Elle reste en `noindex` et signale les exemples fictifs. Le raccordement aux annonces Appwrite reste à faire avec l'étape « Découverte ».
+Cette étape ne signifie pas ouverture aux vrais vendeurs : édition, instrumentation d’usage, contrôles anti-abus, recette des emails et mutations réelles, sauvegardes et validation légale restent à effectuer. Le domaine public conserve sa configuration précédente tant que la migration DNS est en attente. Voir [l’état V1](etat-v1.md).
 
 ## Tenue de la documentation
 

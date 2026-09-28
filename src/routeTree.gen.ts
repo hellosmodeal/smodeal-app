@@ -13,8 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as InscriptionRouteImport } from './routes/inscription'
+import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
 import { Route as RechercheRouteImport } from './routes/recherche'
+import { Route as ReinitialiserMotDePasseRouteImport } from './routes/reinitialiser-mot-de-passe'
+import { Route as VerificationEmailRouteImport } from './routes/verification-email'
 import { Route as AuthedCompteRouteImport } from './routes/_authed/compte'
+import { Route as AuthedDeposerRouteImport } from './routes/_authed/deposer'
+import { Route as AuthedMesAnnoncesRouteImport } from './routes/_authed/mes-annonces'
+import { Route as AuthedModerationRouteImport } from './routes/_authed/moderation'
+import { Route as AnnoncesListingIdRouteImport } from './routes/annonces/$listingId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,9 +42,24 @@ const InscriptionRoute = InscriptionRouteImport.update({
   path: '/inscription',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MotDePasseOublieRoute = MotDePasseOublieRouteImport.update({
+  id: '/mot-de-passe-oublie',
+  path: '/mot-de-passe-oublie',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RechercheRoute = RechercheRouteImport.update({
   id: '/recherche',
   path: '/recherche',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReinitialiserMotDePasseRoute = ReinitialiserMotDePasseRouteImport.update({
+  id: '/reinitialiser-mot-de-passe',
+  path: '/reinitialiser-mot-de-passe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificationEmailRoute = VerificationEmailRouteImport.update({
+  id: '/verification-email',
+  path: '/verification-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedCompteRoute = AuthedCompteRouteImport.update({
@@ -45,20 +67,54 @@ const AuthedCompteRoute = AuthedCompteRouteImport.update({
   path: '/compte',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedDeposerRoute = AuthedDeposerRouteImport.update({
+  id: '/deposer',
+  path: '/deposer',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedMesAnnoncesRoute = AuthedMesAnnoncesRouteImport.update({
+  id: '/mes-annonces',
+  path: '/mes-annonces',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedModerationRoute = AuthedModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AnnoncesListingIdRoute = AnnoncesListingIdRouteImport.update({
+  id: '/annonces/$listingId',
+  path: '/annonces/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/verification-email': typeof VerificationEmailRoute
   '/compte': typeof AuthedCompteRoute
+  '/deposer': typeof AuthedDeposerRoute
+  '/mes-annonces': typeof AuthedMesAnnoncesRoute
+  '/moderation': typeof AuthedModerationRoute
+  '/annonces/$listingId': typeof AnnoncesListingIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/verification-email': typeof VerificationEmailRoute
   '/compte': typeof AuthedCompteRoute
+  '/deposer': typeof AuthedDeposerRoute
+  '/mes-annonces': typeof AuthedMesAnnoncesRoute
+  '/moderation': typeof AuthedModerationRoute
+  '/annonces/$listingId': typeof AnnoncesListingIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +122,60 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/connexion': typeof ConnexionRoute
   '/inscription': typeof InscriptionRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
+  '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/verification-email': typeof VerificationEmailRoute
   '/_authed/compte': typeof AuthedCompteRoute
+  '/_authed/deposer': typeof AuthedDeposerRoute
+  '/_authed/mes-annonces': typeof AuthedMesAnnoncesRoute
+  '/_authed/moderation': typeof AuthedModerationRoute
+  '/annonces/$listingId': typeof AnnoncesListingIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connexion' | '/inscription' | '/recherche' | '/compte'
+  fullPaths:
+    | '/'
+    | '/connexion'
+    | '/inscription'
+    | '/mot-de-passe-oublie'
+    | '/recherche'
+    | '/reinitialiser-mot-de-passe'
+    | '/verification-email'
+    | '/compte'
+    | '/deposer'
+    | '/mes-annonces'
+    | '/moderation'
+    | '/annonces/$listingId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/connexion' | '/inscription' | '/recherche' | '/compte'
+  to:
+    | '/'
+    | '/connexion'
+    | '/inscription'
+    | '/mot-de-passe-oublie'
+    | '/recherche'
+    | '/reinitialiser-mot-de-passe'
+    | '/verification-email'
+    | '/compte'
+    | '/deposer'
+    | '/mes-annonces'
+    | '/moderation'
+    | '/annonces/$listingId'
   id:
     | '__root__'
     | '/'
     | '/_authed'
     | '/connexion'
     | '/inscription'
+    | '/mot-de-passe-oublie'
     | '/recherche'
+    | '/reinitialiser-mot-de-passe'
+    | '/verification-email'
     | '/_authed/compte'
+    | '/_authed/deposer'
+    | '/_authed/mes-annonces'
+    | '/_authed/moderation'
+    | '/annonces/$listingId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -89,7 +183,11 @@ export interface RootRouteChildren {
   AuthedRoute: typeof AuthedRouteWithChildren
   ConnexionRoute: typeof ConnexionRoute
   InscriptionRoute: typeof InscriptionRoute
+  MotDePasseOublieRoute: typeof MotDePasseOublieRoute
   RechercheRoute: typeof RechercheRoute
+  ReinitialiserMotDePasseRoute: typeof ReinitialiserMotDePasseRoute
+  VerificationEmailRoute: typeof VerificationEmailRoute
+  AnnoncesListingIdRoute: typeof AnnoncesListingIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,11 +220,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mot-de-passe-oublie': {
+      id: '/mot-de-passe-oublie'
+      path: '/mot-de-passe-oublie'
+      fullPath: '/mot-de-passe-oublie'
+      preLoaderRoute: typeof MotDePasseOublieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recherche': {
       id: '/recherche'
       path: '/recherche'
       fullPath: '/recherche'
       preLoaderRoute: typeof RechercheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reinitialiser-mot-de-passe': {
+      id: '/reinitialiser-mot-de-passe'
+      path: '/reinitialiser-mot-de-passe'
+      fullPath: '/reinitialiser-mot-de-passe'
+      preLoaderRoute: typeof ReinitialiserMotDePasseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verification-email': {
+      id: '/verification-email'
+      path: '/verification-email'
+      fullPath: '/verification-email'
+      preLoaderRoute: typeof VerificationEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/compte': {
@@ -136,15 +255,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCompteRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/deposer': {
+      id: '/_authed/deposer'
+      path: '/deposer'
+      fullPath: '/deposer'
+      preLoaderRoute: typeof AuthedDeposerRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/mes-annonces': {
+      id: '/_authed/mes-annonces'
+      path: '/mes-annonces'
+      fullPath: '/mes-annonces'
+      preLoaderRoute: typeof AuthedMesAnnoncesRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/moderation': {
+      id: '/_authed/moderation'
+      path: '/moderation'
+      fullPath: '/moderation'
+      preLoaderRoute: typeof AuthedModerationRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/annonces/$listingId': {
+      id: '/annonces/$listingId'
+      path: '/annonces/$listingId'
+      fullPath: '/annonces/$listingId'
+      preLoaderRoute: typeof AnnoncesListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthedRouteChildren {
   AuthedCompteRoute: typeof AuthedCompteRoute
+  AuthedDeposerRoute: typeof AuthedDeposerRoute
+  AuthedMesAnnoncesRoute: typeof AuthedMesAnnoncesRoute
+  AuthedModerationRoute: typeof AuthedModerationRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedCompteRoute: AuthedCompteRoute,
+  AuthedDeposerRoute: AuthedDeposerRoute,
+  AuthedMesAnnoncesRoute: AuthedMesAnnoncesRoute,
+  AuthedModerationRoute: AuthedModerationRoute,
 }
 
 const AuthedRouteWithChildren =
@@ -155,7 +308,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthedRoute: AuthedRouteWithChildren,
   ConnexionRoute: ConnexionRoute,
   InscriptionRoute: InscriptionRoute,
+  MotDePasseOublieRoute: MotDePasseOublieRoute,
   RechercheRoute: RechercheRoute,
+  ReinitialiserMotDePasseRoute: ReinitialiserMotDePasseRoute,
+  VerificationEmailRoute: VerificationEmailRoute,
+  AnnoncesListingIdRoute: AnnoncesListingIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
