@@ -32,6 +32,7 @@ Le serveur web est hébergé sur Appwrite Sites avec Node 24. Le plan Appwrite e
 | [Décisions de lancement](docs/decisions-lancement.md) | V1 française, choix produit et mesure de viabilité |
 | [État V1](docs/etat-v1.md) | Parcours implémentés, limites et recette restante |
 | [Mise en production](docs/mise-en-production.md) | Infrastructure vérifiée, schéma Cloud et passage de la V1 en ligne |
+| [Environnements](docs/environnements.md) | Projets public, recette Cloud et recette locale isolée |
 | [Migration .fr](docs/migration-domaine-fr.md) | Domaine cible et séquence DNS/HTTPS/SEO |
 
 ## Développement
