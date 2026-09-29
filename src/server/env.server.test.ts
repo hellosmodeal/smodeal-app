@@ -11,6 +11,30 @@ const valid = {
 }
 
 describe('parseServerEnv', () => {
+  it('permet de désactiver l’indexation sans changer l’origine des callbacks', () => {
+    const env = parseServerEnv({
+      ...valid,
+      PUBLIC_SITE_URL: 'https://recette.example.invalid',
+      PUBLIC_SITE_INDEXABLE: 'false',
+    })
+    expect(env.PUBLIC_SITE_INDEXABLE).toBe(false)
+    expect(env.PUBLIC_SITE_URL).toBe('https://recette.example.invalid')
+    expect(parseServerEnv(valid).PUBLIC_SITE_INDEXABLE).toBe(true)
+    expect(
+      parseServerEnv({ ...valid, PUBLIC_SITE_INDEXABLE: '' })
+        .PUBLIC_SITE_INDEXABLE,
+    ).toBe(true)
+    expect(
+      parseServerEnv({ ...valid, PUBLIC_SITE_INDEXABLE: 'true' })
+        .PUBLIC_SITE_INDEXABLE,
+    ).toBe(true)
+  })
+
+  it('refuse un réglage d’indexation ambigu', () => {
+    expect(() =>
+      parseServerEnv({ ...valid, PUBLIC_SITE_INDEXABLE: 'yes' }),
+    ).toThrow('PUBLIC_SITE_INDEXABLE')
+  })
   it('retourne la configuration Appwrite validée', () => {
     expect(parseServerEnv(valid)).toMatchObject({
       APPWRITE_ENDPOINT: 'https://fra.cloud.appwrite.io/v1',

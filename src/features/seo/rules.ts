@@ -26,6 +26,7 @@ const shareImagePath = '/og-image.png?v=20260928'
 export function resolveSeoConfig(
   publicSiteUrl: string | undefined,
   requestUrl: string,
+  indexingEnabled = true,
 ): SeoConfig {
   const request = new URL(requestUrl)
   const publicSite = publicSiteUrl ? new URL(publicSiteUrl) : undefined
@@ -34,6 +35,7 @@ export function resolveSeoConfig(
   return {
     origin: isPublicHost ? publicSite.origin : request.origin,
     indexable:
+      indexingEnabled &&
       isPublicHost &&
       publicSite.protocol === 'https:' &&
       !['localhost', '127.0.0.1', '[::1]'].includes(publicSite.hostname),

@@ -16,6 +16,17 @@ function metaContent(
 }
 
 describe('resolveSeoConfig', () => {
+  it('interdit l’indexation de la recette malgré son origine HTTPS configurée', () => {
+    const config = resolveSeoConfig(
+      'https://smodeal-recette.appwrite.network',
+      'https://smodeal-recette.appwrite.network/',
+      false,
+    )
+    expect(config.indexable).toBe(false)
+    const head = buildPageHead(page, config)
+    expect(metaContent(head, 'robots')).toBe('noindex, nofollow')
+    expect(head.links).toEqual([])
+  })
   it('reste en noindex avec une origine de callback locale configurée', () => {
     expect(
       resolveSeoConfig('http://localhost:18671', 'http://localhost:18671/'),

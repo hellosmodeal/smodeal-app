@@ -16,6 +16,7 @@ describe('publicPhotoUrl', () => {
         APPWRITE_DATABASE_ID: 'smodeal',
         NODE_ENV: 'test',
         PUBLIC_SITE_URL: undefined,
+        PUBLIC_SITE_INDEXABLE: false,
       }),
     ).toBe(
       'https://fra.cloud.appwrite.io/v1/storage/buckets/listing-photos/files/photo-1/view?project=project-1',

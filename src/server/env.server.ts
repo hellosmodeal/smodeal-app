@@ -10,6 +10,13 @@ const serverEnvSchema = z
       (value) => (value === '' ? undefined : value),
       z.url().optional(),
     ),
+    PUBLIC_SITE_INDEXABLE: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .enum(['true', 'false'])
+        .default('true')
+        .transform((value) => value === 'true'),
+    ),
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
