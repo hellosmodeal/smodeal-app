@@ -20,6 +20,8 @@ La CI ordinaire saute ce test externe. Pour l’exécuter, utiliser `qa-check.sh
 
 La recette HTTP couvre aussi le cookie de connexion, l’accord et le refus du contact, les sessions suspendues, les fiches vendues/retirées en 404 et le dépassement du quota de connexion avec ses en-têtes. Si un serveur de recette lancé avec `.env.qa.local` est déjà actif sur 18671, utiliser explicitement `SMODEAL_QA_REUSE_SERVER=1 ./scripts/qa-check.sh` : il sera conservé.
 
+La modération vérifie les deux décisions sur les services réels : retrait avec signalement résolu et fiche en 404 ; classement sans retrait avec annonce toujours active et fiche en 200. Chaque décision produit une entrée de journal. Rejouer le classement est refusé et ne crée pas de seconde entrée.
+
 Si `.qa-browser.local` est absent, le script crée automatiquement les fixtures avec un mot de passe aléatoire non affiché. Un fichier existant est conservé. Il valide l’endpoint, le projet et la base locale avant de lancer les services ou les tests.
 
 Pour les essais navigateur, fournir un mot de passe fictif via `QA_BROWSER_PASSWORD`, puis lancer `SMODEAL_QA=1 node --env-file=.env.qa.local --experimental-strip-types scripts/qa-seed.server.ts --write`. Le script refuse toute cible distante et crée des comptes et annonces de recette. `.qa-browser.local` contient les identifiants générés en mode 600 et est ignoré par Git. Ne pas copier ni publier son contenu.

@@ -293,9 +293,88 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
         queries: [Query.equal('targetId', id)],
       })
       expect(logs.rows).toHaveLength(1)
+      expect(logs.rows[0]?.action).toBe('remove_listing')
+      expect(
+        (
+          await tables.getRow({
+            databaseId: deps.databaseId,
+            tableId: 'reports',
+            rowId: report.id,
+          })
+        ).state,
+      ).toBe('resolved')
       expect(
         (await fetch(`http://localhost:18671/annonces/${id}`)).status,
       ).toBe(404)
+
+      const { id: keptId } = await publishListing(input, new Date(), deps)
+      await submitListingReport(
+        tables,
+        deps.databaseId,
+        actor,
+        { listingId: keptId, reason: 'Signalement fictif à classer.' },
+        new Date(),
+      )
+      const openReports = await listOpenReports(tables, deps.databaseId, admin)
+      const dismissedReport = openReports.reports.find(
+        (item) => item.listingId === keptId,
+      )
+      if (!dismissedReport)
+        throw new Error('Signalement à classer introuvable.')
+      const dismissal = {
+        reportId: dismissedReport.id,
+        reason: 'Annonce fictive conforme pour recette.',
+        action: 'dismiss' as const,
+      }
+      const dismissedAt = new Date()
+      await removeReportedListing(
+        tables,
+        deps.databaseId,
+        admin,
+        dismissal,
+        dismissedAt,
+      )
+      const dismissedRow = await tables.getRow({
+        databaseId: deps.databaseId,
+        tableId: 'reports',
+        rowId: dismissedReport.id,
+      })
+      expect(dismissedRow.state).toBe('dismissed')
+      expect(new Date(dismissedRow.resolvedAt).getTime()).toBe(
+        dismissedAt.getTime(),
+      )
+      expect(
+        (
+          await tables.getRow({
+            databaseId: deps.databaseId,
+            tableId: 'listings',
+            rowId: keptId,
+          })
+        ).status,
+      ).toBe('active')
+      await expect(
+        removeReportedListing(
+          tables,
+          deps.databaseId,
+          admin,
+          dismissal,
+          new Date(),
+        ),
+      ).rejects.toThrow('déjà traité')
+      const dismissalLogs = await tables.listRows({
+        databaseId: deps.databaseId,
+        tableId: 'moderation_logs',
+        queries: [Query.equal('targetId', keptId)],
+      })
+      expect(dismissalLogs.rows).toHaveLength(1)
+      expect(dismissalLogs.rows[0]).toMatchObject({
+        action: 'dismiss_report',
+        adminId: admin.id,
+        reason: dismissal.reason,
+      })
+      expect(
+        (await fetch(`http://localhost:18671/annonces/${keptId}`)).status,
+      ).toBe(200)
 
       await requestPasswordRecovery(account, email, env.PUBLIC_SITE_URL)
       const recovery = await emailToken(email, '/reinitialiser-mot-de-passe')

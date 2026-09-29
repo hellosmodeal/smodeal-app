@@ -36,3 +36,15 @@ La V1 reste dans la [PR #6](https://github.com/hellosmodeal/smodeal-app/pull/6),
 ### Réception et limites
 
 La page d’accueil interroge les données isolées et affiche zéro annonce ; un essai de connexion avec un compte fictif inexistant retourne « Identifiants invalides. », et non une panne du limiteur. Les contrôles des parcours avec comptes réels de recette, des emails, des photos et de la modération restent à réceptionner. La clé devra être renouvelée ou révoquée à son échéance ; sa rotation remet les compteurs HMAC dans une nouvelle identité.
+
+### Parcours Cloud à réceptionner
+
+Utiliser deux membres fictifs et une boîte email dédiée autorisée par son propriétaire. La création et la récupération du mot de passe sont effectuées par la personne qui garde les identifiants. Aucune clé ni session Cloud n’est copiée vers les scripts locaux.
+
+1. Recevoir la vérification email, revenir sur le domaine de recette et pouvoir publier après vérification. Recevoir ensuite la récupération du mot de passe et vérifier la nouvelle connexion.
+2. Publier une annonce fictive avec une photo PNG/JPEG/WebP ; constater la photo dans le navigateur et l’absence du téléphone dans la réponse publique.
+3. Tester le contact avec le second membre : autorisé avec accord, refusé sans accord, réponse privée non mise en cache. Une annonce vendue ou retirée doit répondre 404.
+4. Après attribution explicitement approuvée du rôle admin au compte de recette, retirer une annonce signalée : statut `removed_by_moderation`, signalement `resolved`, une entrée `remove_listing`, fiche en 404.
+5. Classer un autre signalement sans retrait : annonce active et fiche en 200, signalement `dismissed`, une entrée `dismiss_report`. Un second traitement doit être refusé sans nouvelle entrée.
+
+Le dernier scénario et le retrait sont vérifiés par la recette locale automatisée du 29 septembre 2026 (cinq tests externes réussis). Ce résultat ne vaut pas réception des emails ni des parcours dans Cloud.
