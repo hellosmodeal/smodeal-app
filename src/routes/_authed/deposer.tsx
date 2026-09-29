@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { type ComponentProps, type FormEvent, useState } from 'react'
 
+import { assertMutationSucceeded } from '@/features/abuse/result'
 import { publishListing } from '@/features/listings/functions'
+import { priceInputToCents } from '@/features/listings/price-input'
 import { LISTING_CATEGORIES } from '@/features/listings/rules'
 
 const labels = {
@@ -28,7 +30,12 @@ function PublishPage() {
     setError(null)
     setPending(true)
     try {
-      await publishListing({ data: new FormData(event.currentTarget) })
+      const data = new FormData(event.currentTarget)
+      data.set(
+        'priceCents',
+        String(priceInputToCents(String(data.get('priceEuros') ?? ''))),
+      )
+      assertMutationSucceeded(await publishListing({ data }))
       await navigate({ to: '/mes-annonces' })
     } catch (reason) {
       setError(
@@ -80,10 +87,12 @@ function PublishPage() {
             <option value="fair">État correct</option>
           </Select>
           <Field
-            label="Prix en centimes"
-            name="priceCents"
+            label="Prix (€)"
+            name="priceEuros"
             type="number"
             min="0"
+            step="0.01"
+            max="20000000"
             required
           />
           <Field label="Ville" name="city" required />

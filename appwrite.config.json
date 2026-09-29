@@ -439,6 +439,58 @@
           "orders": ["ASC", "ASC"]
         }
       ]
+    },
+    {
+      "$id": "rate_limits",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Compteurs anti-abus privés",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "action",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "subjectHash",
+          "type": "varchar",
+          "size": 64,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "windowStart",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "windowEnd",
+          "type": "datetime",
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "count",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 2000000000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "window_end",
+          "type": "key",
+          "columns": ["windowEnd"],
+          "orders": ["ASC"]
+        }
+      ]
     }
   ],
   "buckets": [

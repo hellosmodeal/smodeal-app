@@ -1,8 +1,10 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { type ComponentProps, type FormEvent, useState } from 'react'
 
+import { assertMutationSucceeded } from '@/features/abuse/result'
 import { updateListing } from '@/features/listings/functions'
 import type { ListingForEditing } from '@/features/listings/listings.server'
+import { priceInputToCents } from '@/features/listings/price-input'
 import { LISTING_CATEGORIES } from '@/features/listings/rules'
 
 const categoryLabels = {
@@ -31,7 +33,12 @@ export function EditListingForm({ listing }: { listing: ListingForEditing }) {
     setError(null)
     setPending(true)
     try {
-      await updateListing({ data: new FormData(event.currentTarget) })
+      const data = new FormData(event.currentTarget)
+      data.set(
+        'priceCents',
+        String(priceInputToCents(String(data.get('priceEuros') ?? ''))),
+      )
+      assertMutationSucceeded(await updateListing({ data }))
       await navigate({ to: '/mes-annonces' })
     } catch (reason) {
       setError(
@@ -85,11 +92,13 @@ export function EditListingForm({ listing }: { listing: ListingForEditing }) {
           ))}
         </Select>
         <Field
-          label="Prix en centimes"
-          name="priceCents"
+          label="Prix (€)"
+          name="priceEuros"
           type="number"
           min="0"
-          defaultValue={listing.priceCents}
+          step="0.01"
+          max="20000000"
+          defaultValue={listing.priceCents / 100}
           required
         />
         <Field label="Ville" name="city" defaultValue={listing.city} required />

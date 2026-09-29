@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { setResponseHeader } from '@tanstack/react-start/server'
 import { z } from 'zod'
+import { limitCurrentMemberAction } from '@/features/abuse/functions.server'
 import { revealListingPhone } from './contact.server'
 
 const listingIdSchema = z.object({
@@ -15,5 +16,6 @@ export const revealPhone = createServerFn({ method: 'POST' })
   .inputValidator(listingIdSchema)
   .handler(async ({ data }): Promise<PhoneRevealResult> => {
     setResponseHeader('Cache-Control', 'private, no-store')
+    await limitCurrentMemberAction('contact_reveal')
     return revealListingPhone(data.listingId)
   })

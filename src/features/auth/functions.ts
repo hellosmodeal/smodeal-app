@@ -1,6 +1,15 @@
 import { redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import {
+  RateLimitError,
+  RateLimitUnavailableError,
+} from '@/features/abuse/abuse.server'
+import {
+  limitAnonymousAction,
+  limitMemberAction,
+  requestTokenSubject,
+} from '@/features/abuse/functions.server'
 import { getServerEnv } from '@/server/env.server'
 import {
   appwriteErrorCode,
@@ -30,7 +39,9 @@ export type CurrentUser = {
 
 export type AuthResult = { ok: true } | { ok: false; message: string }
 
-export type RecoveryRequestResult = { ok: true; message: string }
+export type RecoveryRequestResult =
+  | { ok: true; message: string }
+  | { ok: false; message: string }
 
 const credentialsSchema = z.object({
   email: z.email(),
@@ -53,6 +64,11 @@ const resetPasswordSchema = tokenSchema.extend({
 const recoverySchema = z.object({ email: z.email() })
 
 function toAuthError(error: unknown, fallback: string): AuthResult {
+  if (
+    error instanceof RateLimitError ||
+    error instanceof RateLimitUnavailableError
+  )
+    return { ok: false, message: error.message }
   const code = appwriteErrorCode(error)
   if (code) {
     if (code === 401) return { ok: false, message: 'Identifiants invalides.' }
@@ -65,6 +81,11 @@ function toAuthError(error: unknown, fallback: string): AuthResult {
 }
 
 function toTokenError(error: unknown): AuthResult {
+  if (
+    error instanceof RateLimitError ||
+    error instanceof RateLimitUnavailableError
+  )
+    return { ok: false, message: error.message }
   if (appwriteErrorCode(error) === 429) {
     return { ok: false, message: 'Trop de tentatives, réessayez plus tard.' }
   }
@@ -92,6 +113,7 @@ export const signIn = createServerFn({ method: 'POST' })
   .inputValidator(credentialsSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
+      await limitAnonymousAction('auth_signin', data.email)
       const session = await createEmailPasswordSession(
         adminClient().account,
         data,
@@ -99,6 +121,7 @@ export const signIn = createServerFn({ method: 'POST' })
       persistSession(session)
       return { ok: true }
     } catch (error) {
+      if (error instanceof Response) throw error
       return toAuthError(error, 'Connexion impossible pour le moment.')
     }
   })
@@ -107,10 +130,12 @@ export const signUp = createServerFn({ method: 'POST' })
   .inputValidator(signUpSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
+      await limitAnonymousAction('auth_signup', data.email)
       const session = await createAccountAndSession(adminClient().account, data)
       persistSession(session)
       return { ok: true }
     } catch (error) {
+      if (error instanceof Response) throw error
       return toAuthError(error, 'Inscription impossible pour le moment.')
     }
   })
@@ -135,9 +160,14 @@ export const requestEmailVerification = createServerFn({
   }
 
   try {
+    const user = await loadCurrentUser()
+    if (!user)
+      return { ok: false, message: 'Connectez-vous pour vérifier votre email.' }
+    await limitMemberAction('auth_email_verification_resend', user.$id)
     await sendEmailVerification(client.account, getServerEnv().PUBLIC_SITE_URL)
     return { ok: true }
   } catch (error) {
+    if (error instanceof Response) throw error
     return toAuthError(error, 'Envoi impossible pour le moment.')
   }
 })
@@ -146,6 +176,10 @@ export const verifyEmail = createServerFn({ method: 'POST' })
   .inputValidator(tokenSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
+      await limitAnonymousAction(
+        'auth_email_verification',
+        requestTokenSubject(data.userId),
+      )
       await completeEmailVerification(
         adminClient().account,
         data.userId,
@@ -153,6 +187,7 @@ export const verifyEmail = createServerFn({ method: 'POST' })
       )
       return { ok: true }
     } catch (error) {
+      if (error instanceof Response) throw error
       return toTokenError(error)
     }
   })
@@ -160,16 +195,34 @@ export const verifyEmail = createServerFn({ method: 'POST' })
 export const requestPasswordReset = createServerFn({ method: 'POST' })
   .inputValidator(recoverySchema)
   .handler(async ({ data }): Promise<RecoveryRequestResult> => {
-    await requestPasswordRecovery(
-      adminClient().account,
-      data.email,
-      getServerEnv().PUBLIC_SITE_URL,
-    )
-
-    return {
-      ok: true,
-      message:
-        'Si un compte correspond à cette adresse, un lien de réinitialisation vient d’être envoyé.',
+    try {
+      await limitAnonymousAction('auth_password_recovery', data.email)
+    } catch (error) {
+      if (error instanceof Response) throw error
+      if (
+        error instanceof RateLimitError ||
+        error instanceof RateLimitUnavailableError
+      ) {
+        return { ok: false, message: error.message }
+      }
+      throw error
+    }
+    try {
+      await requestPasswordRecovery(
+        adminClient().account,
+        data.email,
+        getServerEnv().PUBLIC_SITE_URL,
+      )
+      return {
+        ok: true,
+        message:
+          'Si un compte correspond à cette adresse, un lien de réinitialisation vient d’être envoyé.',
+      }
+    } catch {
+      return {
+        ok: false,
+        message: 'Demande impossible pour le moment. Réessayez plus tard.',
+      }
     }
   })
 
@@ -177,6 +230,10 @@ export const resetPassword = createServerFn({ method: 'POST' })
   .inputValidator(resetPasswordSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
+      await limitAnonymousAction(
+        'auth_password_reset',
+        requestTokenSubject(data.userId),
+      )
       await completePasswordRecovery(
         adminClient().account,
         data.userId,
@@ -185,6 +242,7 @@ export const resetPassword = createServerFn({ method: 'POST' })
       )
       return { ok: true }
     } catch (error) {
+      if (error instanceof Response) throw error
       return toTokenError(error)
     }
   })

@@ -3,6 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { listingEditFormSchema, listingFormSchema } from './functions'
 
 describe('listingFormSchema', () => {
+  it('autorise une annonce quand le champ photo est laissé vide', () => {
+    const form = validForm()
+    form.set('photos', new File([], '', { type: 'application/octet-stream' }))
+
+    expect(listingFormSchema.parse(form).photos).toEqual([])
+  })
+
   it('autorise la publication sans accord de communication du téléphone', () => {
     const form = new FormData()
     form.set('title', 'Lampe de bureau')

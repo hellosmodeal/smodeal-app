@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
+import { limitCurrentMemberAction } from '@/features/abuse/functions.server'
 import {
   changeListingStatus as changeListingStatusOnServer,
   getListingForEditing as getListingForEditingOnServer,
@@ -53,7 +54,10 @@ export const listingFormSchema = z
   .transform((form): PublishListingInput => {
     const photos = form
       .getAll('photos')
-      .filter((value) => value instanceof File)
+      .filter(
+        (value) =>
+          value instanceof File && !(value.name === '' && value.size === 0),
+      )
     return z
       .object({
         ...publicListingFieldsSchema.shape,
@@ -88,9 +92,10 @@ export const listingFormSchema = z
 
 export const publishListing = createServerFn({ method: 'POST' })
   .inputValidator(listingFormSchema)
-  .handler(
-    async ({ data }): Promise<{ id: string }> => publishListingOnServer(data),
-  )
+  .handler(async ({ data }): Promise<{ id: string }> => {
+    await limitCurrentMemberAction('listing_publish')
+    return publishListingOnServer(data)
+  })
 
 export const listingEditFormSchema = z
   .custom<FormData>(
@@ -130,16 +135,19 @@ const listingActionSchema = z.object({
 
 export const changeListingStatus = createServerFn({ method: 'POST' })
   .inputValidator(listingActionSchema)
-  .handler(
-    async ({ data }): Promise<void> =>
-      changeListingStatusOnServer(data.id, data.status),
-  )
+  .handler(async ({ data }): Promise<void> => {
+    await limitCurrentMemberAction('listing_status_change')
+    return changeListingStatusOnServer(data.id, data.status)
+  })
 
 const renewListingSchema = z.object({ id: z.string().min(1) })
 
 export const renewListing = createServerFn({ method: 'POST' })
   .inputValidator(renewListingSchema)
-  .handler(async ({ data }): Promise<void> => renewListingOnServer(data.id))
+  .handler(async ({ data }): Promise<void> => {
+    await limitCurrentMemberAction('listing_renew')
+    return renewListingOnServer(data.id)
+  })
 
 const listingIdSchema = z.object({ id: z.string().min(1) })
 
@@ -164,7 +172,7 @@ export const updateListing = createServerFn({ method: 'POST' })
         data: listingEditFormSchema.parse(form),
       })),
   )
-  .handler(
-    async ({ data }): Promise<void> =>
-      updateListingOnServer(data.id, data.data),
-  )
+  .handler(async ({ data }): Promise<void> => {
+    await limitCurrentMemberAction('listing_update')
+    return updateListingOnServer(data.id, data.data)
+  })

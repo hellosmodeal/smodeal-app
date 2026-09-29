@@ -18,6 +18,14 @@ La recette démarre son propre serveur sur `127.0.0.1:18671`, puis l’arrête. 
 
 La CI ordinaire saute ce test externe. Pour l’exécuter, utiliser `qa-check.sh` ; le drapeau `SMODEAL_QA=1` et les contrôles d’origine empêchent les mutations accidentelles vers Cloud. Les données fictives restent dans les volumes locaux pour inspection ; aucune donnée de production n’est copiée.
 
+La recette HTTP couvre aussi le cookie de connexion, l’accord et le refus du contact, les sessions suspendues, les fiches vendues/retirées en 404 et le dépassement du quota de connexion avec ses en-têtes. Si un serveur de recette lancé avec `.env.qa.local` est déjà actif sur 18671, utiliser explicitement `SMODEAL_QA_REUSE_SERVER=1 ./scripts/qa-check.sh` : il sera conservé.
+
+Si `.qa-browser.local` est absent, le script crée automatiquement les fixtures avec un mot de passe aléatoire non affiché. Un fichier existant est conservé. Il valide l’endpoint, le projet et la base locale avant de lancer les services ou les tests.
+
+Pour les essais navigateur, fournir un mot de passe fictif via `QA_BROWSER_PASSWORD`, puis lancer `SMODEAL_QA=1 node --env-file=.env.qa.local --experimental-strip-types scripts/qa-seed.server.ts --write`. Le script refuse toute cible distante et crée des comptes et annonces de recette. `.qa-browser.local` contient les identifiants générés en mode 600 et est ignoré par Git. Ne pas copier ni publier son contenu.
+
+La concurrence du compteur se vérifie séparément avec `SMODEAL_QA=1 node --env-file=.env.qa.local node_modules/vitest/vitest.mjs run src/features/abuse`.
+
 ## Services et secrets
 
 | Service | Adresse |
@@ -30,7 +38,7 @@ Les emails destinés aux adresses fictives `@smodeal.test` sont capturés par Ma
 
 `appwrite.local`, `console-admin.local` et `.env.qa.local` sont générés avec des secrets aléatoires, ignorés par Git et protégés en mode 600. Ne pas copier ces clés vers la production ni versionner ces fichiers. Le bootstrap conserve un fichier d’environnement existant et rejoue uniquement la création du schéma manquant.
 
-En local, les contrôles anti-abus et le moteur antivirus sont désactivés pour la recette. Les signatures et limites des photos sont toujours contrôlées par l’application. Les fonctions, Sites et leur exécuteur ne sont pas installés : cet environnement valide les parcours Auth/TablesDB/Storage, pas l’hébergement Cloud. Les callbacks HTTP ne sont acceptés que hors production avec un backend Appwrite local ; le site local reste `noindex`.
+En local, les contrôles anti-abus propres à Appwrite et le moteur antivirus sont désactivés pour la recette. Le limiteur de l’application, les signatures et limites des photos restent actifs. Les fonctions, Sites et leur exécuteur ne sont pas installés : cet environnement valide les parcours Auth/TablesDB/Storage, pas l’hébergement Cloud. Les callbacks HTTP ne sont acceptés que hors production avec un backend Appwrite local ; le site local reste `noindex`.
 
 ## Arrêter
 

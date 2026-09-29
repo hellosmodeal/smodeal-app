@@ -7,12 +7,22 @@ export function RevealPhoneButton({ listingId }: { listingId: string }) {
   const reveal = useServerFn(revealPhone)
   const [phone, setPhone] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
   async function handleReveal(): Promise<void> {
     setMessage(null)
-    const result = await reveal({ data: { listingId } })
-    if (result.ok) setPhone(result.phone)
-    else setMessage(result.message)
+    setPending(true)
+    try {
+      const result = await reveal({ data: { listingId } })
+      if (result.ok) setPhone(result.phone)
+      else setMessage(result.message)
+    } catch {
+      setMessage(
+        'Demande impossible pour le moment. Attendez quelques instants avant de réessayer.',
+      )
+    } finally {
+      setPending(false)
+    }
   }
 
   if (phone) {
@@ -25,10 +35,14 @@ export function RevealPhoneButton({ listingId }: { listingId: string }) {
 
   return (
     <div className="space-y-2">
-      <Button onClick={() => void handleReveal()}>
-        Voir le numéro de téléphone
+      <Button disabled={pending} onClick={() => void handleReveal()}>
+        {pending ? 'Chargement…' : 'Voir le numéro de téléphone'}
       </Button>
-      {message && <p className="text-sm text-muted-foreground">{message}</p>}
+      {message && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {message}
+        </p>
+      )}
     </div>
   )
 }

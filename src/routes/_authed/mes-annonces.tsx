@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 
+import { assertMutationSucceeded } from '@/features/abuse/result'
 import {
   changeListingStatus,
   getSellerListings,
@@ -24,8 +25,11 @@ function SellerListingsPage() {
   async function action(id: string, kind: 'sold' | 'withdrawn' | 'renew') {
     setError(null)
     try {
-      if (kind === 'renew') await renewListing({ data: { id } })
-      else await changeListingStatus({ data: { id, status: kind } })
+      const result =
+        kind === 'renew'
+          ? await renewListing({ data: { id } })
+          : await changeListingStatus({ data: { id, status: kind } })
+      assertMutationSucceeded(result)
       await router.invalidate()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Action impossible.')
@@ -59,10 +63,12 @@ function SellerListingsPage() {
           listings.map((listing) => (
             <article
               key={listing.id}
-              className="flex gap-4 items-center justify-between rounded-lg border border-border p-4"
+              className="flex gap-4 flex-col items-start justify-between rounded-lg border border-border p-4 sm:flex-row sm:items-center"
             >
-              <div>
-                <h2 className="font-semibold">{listing.title}</h2>
+              <div className="min-w-0">
+                <h2 className="font-semibold wrap-break-word">
+                  {listing.title}
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   {(listing.priceCents / 100).toLocaleString('fr-FR', {
                     style: 'currency',
@@ -71,7 +77,7 @@ function SellerListingsPage() {
                   · {listing.city} · {listing.status}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3 flex-wrap">
                 <Link
                   to="/annonces/$listingId/modifier"
                   params={{ listingId: listing.id }}

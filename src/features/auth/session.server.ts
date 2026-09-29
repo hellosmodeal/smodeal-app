@@ -4,7 +4,7 @@ import {
   getRequestHeader,
   setCookie,
 } from '@tanstack/react-start/server'
-import type { Models } from 'node-appwrite'
+import type { Account, Models } from 'node-appwrite'
 import { AppwriteException } from 'node-appwrite'
 import {
   createAdminClient,
@@ -44,14 +44,20 @@ export function sessionClient() {
   return secret ? createSessionClient(secret, userAgent()) : null
 }
 
-export async function loadCurrentUser() {
-  const client = sessionClient()
-  if (!client) return null
+export async function loadCurrentUser(
+  account: Pick<Account, 'get'> | null = sessionClient()?.account ?? null,
+) {
+  if (!account) return null
   try {
-    const user = await client.account.get()
+    const user = await account.get()
     return isActiveUser(user) ? user : null
   } catch (error) {
-    if (error instanceof AppwriteException && error.code === 401) return null
+    if (
+      error instanceof AppwriteException &&
+      (error.code === 401 ||
+        (error.code === 403 && error.type === 'user_blocked'))
+    )
+      return null
     throw error
   }
 }
