@@ -33,7 +33,7 @@ Les règles et coûts du limiteur figurent dans [anti-abus.md](anti-abus.md). Un
 
 ## Avant ouverture aux vrais vendeurs
 
-Le projet nommé « Smodeal dev » alimente aujourd’hui le site public. Un projet distinct « Smodeal recette » a été créé avec son schéma et son stockage ; son site attend la vérification GitHub pour être raccordé. Voir [les environnements](environnements.md). Terminer ce raccordement et la recette isolée avant ouverture aux vendeurs.
+Le projet nommé « Smodeal dev » alimente aujourd’hui le site public. Un projet distinct « Smodeal recette » a été créé avec son schéma et son stockage ; son site est raccordé au dépôt, en rendu serveur Node 24, avec un accès serveur isolé et l’indexation désactivée. Voir [les environnements](environnements.md). Terminer la recette des parcours utilisateurs isolés avant ouverture aux vendeurs.
 
 Restent également à réceptionner : restauration des données et photos, conservation/nettoyage des médias, cas réseau et liens expirés, coût sous charge, instrumentation d’usage, responsable de modération et textes légaux. Voir [l’état V1](etat-v1.md) et [les décisions de lancement](decisions-lancement.md). Ces éléments distinguent la mise en ligne technique de l’ouverture aux vendeurs.
 
