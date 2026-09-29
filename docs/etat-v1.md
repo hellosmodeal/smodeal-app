@@ -27,7 +27,7 @@ Routes : `/compte`, `/deposer`, `/mes-annonces`, `/annonces/$listingId/modifier`
 
 ## Avant ouverture aux vrais vendeurs
 
-1. Appliquer la nouvelle table privée `rate_limits` au projet Cloud avant de déployer le code qui l’utilise, puis vérifier ses permissions et recetter les callbacks sur une origine HTTPS approuvée. L’environnement local est décrit dans [la recette](../infra/qa/README.md).
+1. Recetter le déploiement et ses callbacks sur une origine HTTPS approuvée. La table privée `rate_limits` a été installée et vérifiée dans Cloud le 29 septembre ; suivre [la mise en production](mise-en-production.md). L’environnement local est décrit dans [la recette](../infra/qa/README.md).
 2. Compléter les cas réseau et liens expirés, définir le responsable de modération et fournir les textes légaux validés par le responsable du projet.
 3. Tester sauvegarde et restauration des données et photos ; définir réconciliation des commits incertains et purge des médias orphelins.
 4. Vérifier la charge et le coût des transactions anti-abus, puis déployer la version validée et vérifier les parcours dans l’environnement distant.
@@ -49,3 +49,7 @@ La recette HTTP réelle vérifie maintenant le cookie de connexion, les contacts
 Le navigateur local a été essayé à 1280 et 390 pixels : accueil et recherche sans débordement horizontal global, redirection vers la connexion, publication sans photo et sans consentement présélectionné, saisie de 25,50 € puis modification à 26,75 €, affichage autorisé du téléphone fictif et refus sans consentement. Les photos restent facultatives ; le fichier vide produit par un champ non renseigné est ignoré. Cette recette a également corrigé le traitement Appwrite des comptes suspendus et la comparaison des dates des compteurs.
 
 Ces essais utilisent uniquement des comptes et annonces fictifs dans Appwrite local. La table `rate_limits` a été créée localement ; elle n’a pas été appliquée au projet Cloud par cette recette.
+
+## Préparation Cloud du 29 septembre 2026
+
+Après la recette locale, la table privée `rate_limits` a été créée dans le projet Cloud configuré, sans modifier les autres tables ni le bucket. Les cinq colonnes, l’index et le refus de lecture anonyme ont été vérifiés. Une transaction et sa limite d’incrément ont été essayées avec un compteur temporaire, supprimé après contrôle. Aucun compte ni email de recette n’a été créé dans Cloud. Le build de la PR est réussi ; le site public sert encore `main` avant fusion. Voir [la mise en production](mise-en-production.md).

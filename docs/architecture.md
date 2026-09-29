@@ -10,6 +10,7 @@
 | Données | Appwrite TablesDB |
 | Photos | Appwrite Storage |
 | Infrastructure de services | Appwrite Cloud |
+| Hébergement SSR | Appwrite Sites, TanStack Start, Node 24 |
 
 Annonces publiques rendues côté serveur ; filtres dans l'URL. Administration métier dans l'application. Better Auth et backend Python séparé hors V1.
 
@@ -36,6 +37,7 @@ Les requêtes publiques doivent exclure immédiatement les annonces dont la date
 | Signalements | Annonce, auteur, motif, état et dates |
 | Journal de modération | Administrateur, cible, action, motif et date |
 | Événements d'usage | Type d'événement, annonce et date ; données minimales à définir |
+| Compteurs anti-abus privés | Action, sujet HMAC, fenêtre et nombre de demandes ; aucune permission client |
 
 États proposés : active, vendue, expirée, retirée par le vendeur, retirée par modération. Les transitions autorisées et la conservation des fiches non actives seront précisées avant implémentation.
 
@@ -60,7 +62,7 @@ Limiter les photos à cinq ; formats, poids et dimensions à fixer. Vérifier le
 
 ## Exploitation et validation
 
-Choisir l'hébergement SSR, le plan et la région Appwrite, le service d'email et le mécanisme planifié. Hébergement SSR proposé (non validé) : Appwrite Sites, framework TanStack Start, runtime Node 24, installation `corepack enable && pnpm install --frozen-lockfile`, build `pnpm build`, sortie `./.output`, déploiement depuis la branche `main` du dépôt GitHub. Documenter les environnements, secrets nécessaires sans leurs valeurs, sauvegardes, export et procédure de restauration des données et médias.
+Appwrite Sites héberge le site public : framework TanStack Start, runtime Node 24, installation `corepack enable && pnpm install --frozen-lockfile`, build `pnpm build`, sortie `./.output`, déploiement depuis la branche `main` du dépôt GitHub. La configuration Cloud a été vérifiée le 29 septembre 2026. Plan, séparation des environnements, service d’email, mécanisme planifié et sauvegardes restent à préciser. Voir [la mise en production](mise-en-production.md).
 
 La CI GitHub vérifie lint, classes Tailwind, types, tests métier, exports inutilisés et build. Une première recette Auth/TablesDB/Storage et emails a réussi sur Appwrite/Mailpit locaux ; la recette complète et la restauration restent à effectuer. Voir `infra/qa/README.md`.
 

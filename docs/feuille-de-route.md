@@ -10,8 +10,8 @@ Aucune durée n'est engagée à ce stade. Chaque étape doit rester démontrable
 - [x] Retenir la publication immédiate après validation, avec signalement et modération dès l'ouverture réelle.
 - [ ] Fixer date cible, interlocuteur de validation et responsable de modération.
 - [ ] Arrêter les conditions commerciales et frais récurrents hors de ce dépôt.
-- [ ] Choisir hébergement SSR, plan et région Appwrite, email et sauvegardes. Proposé : Appwrite Sites (SSR, même
-  projet Appwrite, région Francfort).
+- [x] Héberger le site public sur Appwrite Sites, Node 24, dans la région Francfort.
+- [ ] Préciser plan, séparation développement/production, email et sauvegardes.
 - [x] Retenir `https://smodeal.fr` comme domaine principal cible, avec `.com` conservé pour redirection.
 - [ ] Migrer DNS, HTTPS, canonique et redirections : le `.fr` redirige encore vers le `.com` actif. Voir [la migration](migration-domaine-fr.md).
 - [ ] Valider les écrans principaux et préparer les fichiers de marque définitifs.
@@ -43,7 +43,7 @@ Une confirmation déclarative ne prouve pas le paiement. L'absence de paiement i
 
 Accueil et recherche utilisent désormais Appwrite ; les données fictives sont réservées aux fixtures de tests. Les fiches publiques appliquent le statut actif et l’expiration. Les comptes disposent de parcours de vérification email et de récupération du mot de passe. Publication, vente, retrait, renouvellement et gestion paginée sont implémentés, ainsi que signalement et traitement administratif avec journal.
 
-Cette étape ne signifie pas ouverture aux vrais vendeurs : instrumentation d’usage, contrôles anti-abus, recette des emails et mutations réelles, sauvegardes et validation légale restent à effectuer. Le domaine public conserve sa configuration précédente tant que la migration DNS est en attente. Voir [l’état V1](etat-v1.md).
+Les contrôles anti-abus et la recette Appwrite/Mailpit locale sont réalisés ; la table anti-abus Cloud est installée. Cette étape ne signifie pas ouverture aux vrais vendeurs : instrumentation d’usage, recette distante du déploiement, séparation des environnements, restauration et validation légale restent à réceptionner. Le domaine public conserve sa configuration précédente tant que la migration DNS est en attente. Voir [l’état V1](etat-v1.md) et [la mise en production](mise-en-production.md).
 
 ## Tenue de la documentation
 

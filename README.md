@@ -18,7 +18,7 @@ Les enchères sont abandonnées. Paiement, commissions, avis, badges et mise en 
 
 TanStack Start · React · TypeScript · Tailwind CSS · shadcn/ui · Appwrite Cloud (Auth, TablesDB, Storage).
 
-Le plan Appwrite reste à définir ; l'hébergement proposé pour le serveur web est Appwrite Sites. Aucun backend Python séparé ni Better Auth n'est prévu pour ce lot.
+Le serveur web est hébergé sur Appwrite Sites avec Node 24. Le plan Appwrite et la séparation des environnements restent à définir. Aucun backend Python séparé ni Better Auth n'est prévu pour ce lot.
 
 ## Documentation
 
@@ -31,6 +31,7 @@ Le plan Appwrite reste à définir ; l'hébergement proposé pour le serveur web
 | [Design](DESIGN.md) | Direction visuelle validée pour la V1, écrans à construire et livrables de marque |
 | [Décisions de lancement](docs/decisions-lancement.md) | V1 française, choix produit et mesure de viabilité |
 | [État V1](docs/etat-v1.md) | Parcours implémentés, limites et recette restante |
+| [Mise en production](docs/mise-en-production.md) | Infrastructure vérifiée, schéma Cloud et passage de la V1 en ligne |
 | [Migration .fr](docs/migration-domaine-fr.md) | Domaine cible et séquence DNS/HTTPS/SEO |
 
 ## Développement
