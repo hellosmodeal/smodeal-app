@@ -1,6 +1,6 @@
 # Mise en production de la V1
 
-État vérifié le 29 septembre 2026. La [PR #6](https://github.com/hellosmodeal/smodeal-app/pull/6) contient la V1 ; elle n’est pas encore fusionnée. Le site public sert le commit `55b9e69` de `main`.
+État vérifié le 30 septembre 2026. La [PR #6](https://github.com/hellosmodeal/smodeal-app/pull/6) contenant la V1 a été fusionnée dans `main` le 30 septembre 2026 ; le site public sert la V1.
 
 ## Infrastructure vérifiée
 
@@ -26,10 +26,21 @@ Les règles et coûts du limiteur figurent dans [anti-abus.md](anti-abus.md). Un
 
 ## Passage du code en ligne
 
-1. Vérifier que la tête de la PR a passé la CI et le build Appwrite. Le commit `9dd6c74` a passé les deux.
-2. Fusionner la version validée dans `main` pour déclencher le site configuré. Aucune fusion n’a été effectuée pendant la préparation du schéma.
-3. Vérifier le nouveau commit actif, les pages publiques, l’accès anonyme refusé aux parcours privés et l’absence de coordonnées dans les pages publiques.
+1. Vérifier que la tête de la PR a passé la CI et le build Appwrite. Le commit `9dd6c74` a passé les deux. Fait.
+2. Fusionner la version validée dans `main` pour déclencher le site configuré. Fait le 30 septembre 2026.
+3. Vérifier le nouveau commit actif, les pages publiques, l’accès anonyme refusé aux parcours privés et l’absence de coordonnées dans les pages publiques. Fait sans compte le 30 septembre, voir ci-dessous.
 4. Recetter les emails et les mutations sur un environnement distant dédié avec comptes fictifs, puis vérifier les secrets, permissions et origines du site de production. Les tests automatisés du dépôt refusent volontairement les cibles Cloud ; ne pas retirer leurs gardes pour effectuer cette recette.
+
+## Vérification publique du 30 septembre 2026
+
+Contrôle anonyme en HTTP sur `https://smodeal.com`, sans compte ni mutation :
+
+- Accueil, recherche, connexion et mot de passe oublié répondent 200. Une fiche inexistante répond 404.
+- `/compte`, `/deposer`, `/mes-annonces` et `/moderation` redirigent en 307 vers `/connexion` avec le paramètre `redirect`.
+- L’accueil affiche « Aucune annonce disponible pour le moment » : aucune annonce fictive servie, aucun numéro de téléphone dans le HTML public.
+- L’accueil conserve `index, follow` et le canonique `https://smodeal.com/`.
+
+L’identifiant exact du déploiement actif n’a pas été lu dans la console : ce contrôle prouve la présence des routes V1, pas le commit servi.
 
 ## Avant ouverture aux vrais vendeurs
 
