@@ -5,7 +5,7 @@
 | Rôle | Projet | Identifiant | Site |
 | --- | --- | --- | --- |
 | Public / production actuelle | Smodeal dev | `6ab8046300165a85123a` | `smodeal-web`, branche `main`, `https://smodeal.com` |
-| Recette Cloud | Smodeal recette | `6abb81ad00044a75f694` | `Smodeal recette`, branche `codex/v1-real-listings`, `https://smodeal-recette.appwrite.network` |
+| Recette Cloud | Smodeal recette | `6abb81ad00044a75f694` | `Smodeal recette`, branche `codex/v1-real-listings` (supprimée après fusion, à rebrancher sur `main`), `https://smodeal-recette.appwrite.network` |
 | Recette locale automatisée | smodeal-qa | `smodeal-qa` | Appwrite/Mailpit Docker, application sur localhost:18671 |
 
 Le nom « Smodeal dev » du premier projet reste historique : il sert le site public. Le fichier racine `appwrite.config.json` continue de désigner ce projet. Ne pas y changer simplement l’identifiant pour lancer une recette.
@@ -31,7 +31,7 @@ Les tests automatisés sous `infra/qa` restent strictement locaux : leurs gardes
 
 ## Déploiement public
 
-La V1 reste dans la [PR #6](https://github.com/hellosmodeal/smodeal-app/pull/6), avant fusion et activation. Suivre [la mise en production](mise-en-production.md) après raccordement et recette du site isolé. Le domaine canonique du site public reste `.com` jusqu’à la migration `.fr`.
+La V1 a été fusionnée dans `main` le 30 septembre 2026 ([PR #6](https://github.com/hellosmodeal/smodeal-app/pull/6)) et sert le site public. Le site de recette construisait la branche de la PR, supprimée après fusion : il reste en ligne sur son dernier déploiement, en `noindex, nofollow`, mais ne se reconstruira plus tant que sa branche n’est pas remplacée par `main` dans la console. Suivre [la mise en production](mise-en-production.md). Le domaine canonique du site public reste `.com` jusqu’à la migration `.fr`.
 
 ### Réception et limites
 
