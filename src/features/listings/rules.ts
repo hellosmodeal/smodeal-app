@@ -6,7 +6,11 @@ const LISTING_STATUSES = [
   'removed_by_moderation',
 ] as const
 
-type ListingStatus = (typeof LISTING_STATUSES)[number]
+export type ListingStatus = (typeof LISTING_STATUSES)[number]
+
+export function isListingStatus(value: string): value is ListingStatus {
+  return (LISTING_STATUSES as readonly string[]).includes(value)
+}
 
 const LISTING_LIFETIME_DAYS = 60
 
@@ -131,4 +135,34 @@ export function canChangeListingStatus(
   actorId: string,
 ): boolean {
   return canManageListing(listing, actorId) && listing.status === 'active'
+}
+
+const LISTING_STATUS_LABELS: Record<ListingStatus, string> = {
+  active: 'En ligne',
+  sold: 'Vendue',
+  expired: 'Expirée',
+  withdrawn: 'Retirée',
+  removed_by_moderation: 'Retirée par la modération',
+}
+
+export function listingStatusLabel(status: ListingStatus): string {
+  return LISTING_STATUS_LABELS[status]
+}
+
+export type SellerListingActions = {
+  edit: boolean
+  markSold: boolean
+  withdraw: boolean
+  renew: boolean
+}
+
+export function sellerListingActions(
+  status: ListingStatus,
+): SellerListingActions {
+  return {
+    edit: status === 'active' || status === 'expired',
+    markSold: status === 'active',
+    withdraw: status === 'active',
+    renew: status === 'expired',
+  }
 }

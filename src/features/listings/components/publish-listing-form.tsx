@@ -1,56 +1,32 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 
-import {
-  ChevronDown,
-  ImagePlus,
-  Loader2,
-  MailCheck,
-  ShieldCheck,
-  X,
-} from 'lucide-react'
+import { ImagePlus, Loader2, MailCheck, ShieldCheck, X } from 'lucide-react'
 import {
   type ChangeEvent,
-  type ComponentProps,
   type DragEvent,
   type FormEvent,
-  type ReactNode,
   useEffect,
   useRef,
   useState,
 } from 'react'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { assertMutationSucceeded } from '@/features/abuse/result'
+import {
+  FormSection,
+  ListingDetailsFields,
+  ListingField,
+  PriceAndLocationFields,
+} from '@/features/listings/components/listing-form-fields'
 import { publishListing } from '@/features/listings/functions'
-import { departmentFromPostalCode } from '@/features/listings/postal-code'
 import { priceInputToCents } from '@/features/listings/price-input'
 import {
-  LISTING_CATEGORIES,
   MAX_LISTING_PHOTOS,
   photoValidationMessage,
 } from '@/features/listings/rules'
 import { cn } from '@/lib/utils'
-
-const categoryLabels = {
-  maison: 'Maison',
-  multimedia: 'Multimédia',
-  mode: 'Mode',
-  loisirs: 'Loisirs',
-  enfants: 'Enfants',
-  jardin: 'Jardin',
-} as const
-
-const conditionLabels = {
-  new: 'Neuf',
-  like_new: 'Comme neuf',
-  good: 'Bon état',
-  fair: 'État correct',
-} as const
-
-const TITLE_MAX_LENGTH = 120
 
 type SelectedPhoto = { file: File; url: string }
 
@@ -58,19 +34,6 @@ export function PublishListingForm() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [title, setTitle] = useState('')
-  const [department, setDepartment] = useState('')
-  const [suggestedDepartment, setSuggestedDepartment] = useState<string | null>(
-    null,
-  )
-
-  function updatePostalCode(event: ChangeEvent<HTMLInputElement>) {
-    const suggestion = departmentFromPostalCode(event.target.value)
-    if (department === '' || department === suggestedDepartment)
-      setDepartment(suggestion ?? '')
-    setSuggestedDepartment(suggestion)
-  }
-
   const photos = usePhotoSelection()
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -85,8 +48,9 @@ export function PublishListingForm() {
       )
       data.delete('photos')
       for (const photo of photos.selected) data.append('photos', photo.file)
-      assertMutationSucceeded(await publishListing({ data }))
-      await navigate({ to: '/mes-annonces' })
+      const result = await publishListing({ data })
+      assertMutationSucceeded(result)
+      await navigate({ to: '/mes-annonces', search: { publiee: result.id } })
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -102,6 +66,7 @@ export function PublishListingForm() {
     <form
       className="grid gap-6 mt-8"
       encType="multipart/form-data"
+      noValidate
       onSubmit={submit}
     >
       <FormSection
@@ -109,51 +74,7 @@ export function PublishListingForm() {
         title="Votre objet"
         description="Un titre précis et une description honnête attirent les bons acheteurs."
       >
-        <FieldGroup
-          label="Titre"
-          htmlFor="title"
-          hint={`${title.length}/${TITLE_MAX_LENGTH}`}
-        >
-          <Input
-            id="title"
-            name="title"
-            maxLength={TITLE_MAX_LENGTH}
-            placeholder="Ex. : Vélo de ville Peugeot, taille M"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-            className="h-10"
-          />
-        </FieldGroup>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FieldGroup label="Catégorie" htmlFor="categorySlug">
-            <NativeSelect id="categorySlug" name="categorySlug">
-              {LISTING_CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {categoryLabels[category]}
-                </option>
-              ))}
-            </NativeSelect>
-          </FieldGroup>
-          <FieldGroup label="État" htmlFor="condition">
-            <NativeSelect id="condition" name="condition" defaultValue="good">
-              {Object.entries(conditionLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </NativeSelect>
-          </FieldGroup>
-        </div>
-        <FieldGroup label="Description" htmlFor="description">
-          <Textarea
-            id="description"
-            name="description"
-            required
-            placeholder="État réel, dimensions, ancienneté, raison de la vente, remise en main propre…"
-            className="min-h-36"
-          />
-        </FieldGroup>
+        <ListingDetailsFields />
       </FormSection>
 
       <FormSection
@@ -169,62 +90,7 @@ export function PublishListingForm() {
         title="Prix et localisation"
         description="Seules la ville et le code postal apparaissent sur l’annonce."
       >
-        <FieldGroup label="Prix" htmlFor="priceEuros">
-          <div className="relative sm:max-w-56">
-            <Input
-              id="priceEuros"
-              name="priceEuros"
-              inputMode="decimal"
-              pattern="\d{1,8}([.,]\d{1,2})?"
-              placeholder="0"
-              required
-              className="h-10 pr-9"
-            />
-            <span className="absolute right-3 inset-y-0 flex items-center text-sm text-muted-foreground pointer-events-none">
-              €
-            </span>
-          </div>
-        </FieldGroup>
-        <div className="grid gap-5 sm:grid-cols-[10rem_1fr_8rem]">
-          <FieldGroup label="Code postal" htmlFor="postalCode">
-            <Input
-              id="postalCode"
-              name="postalCode"
-              inputMode="numeric"
-              autoComplete="postal-code"
-              pattern="[0-9]{5}"
-              maxLength={5}
-              placeholder="75011"
-              onChange={updatePostalCode}
-              required
-              className="h-10"
-            />
-          </FieldGroup>
-          <FieldGroup label="Ville" htmlFor="city">
-            <Input
-              id="city"
-              name="city"
-              autoComplete="address-level2"
-              placeholder="Paris"
-              required
-              className="h-10"
-            />
-          </FieldGroup>
-          <FieldGroup label="Département" htmlFor="department">
-            <Input
-              id="department"
-              name="department"
-              pattern="[0-9]{2}|2A|2B|97[0-9]|98[0-9]"
-              placeholder="75"
-              value={department}
-              onChange={(event) =>
-                setDepartment(event.target.value.toUpperCase())
-              }
-              required
-              className="h-10"
-            />
-          </FieldGroup>
-        </div>
+        <PriceAndLocationFields />
       </FormSection>
 
       <FormSection
@@ -232,17 +98,25 @@ export function PublishListingForm() {
         title="Coordonnées"
         description="Votre numéro n’est jamais affiché publiquement."
       >
-        <FieldGroup label="Téléphone" htmlFor="phone">
+        <ListingField
+          label="Téléphone"
+          htmlFor="phone"
+          description="Numéro français (06 12 34 56 78) ou international (+33 6 12 34 56 78)."
+        >
           <Input
             id="phone"
             name="phone"
             type="tel"
+            inputMode="tel"
             autoComplete="tel"
+            pattern="\+?[0-9 .\(\)\-]{9,20}"
+            title="Numéro français à 10 chiffres ou international commençant par +, espaces et points acceptés."
+            aria-describedby="phone-description"
             placeholder="06 12 34 56 78"
             required
             className="h-10 sm:max-w-64"
           />
-        </FieldGroup>
+        </ListingField>
         <label
           htmlFor="display-consent"
           className="flex gap-3 items-start rounded-lg border border-border p-4 text-sm bg-brand-surface cursor-pointer has-checked:border-primary"
@@ -260,19 +134,17 @@ export function PublishListingForm() {
             </span>
             <span className="text-muted-foreground">
               Seuls les membres connectés qui souhaitent vous contacter pourront
-              le voir. Sans cet accord, il ne sera pas accessible.
+              le voir. Sans cet accord, votre annonce reste visible mais aucun
+              acheteur ne pourra vous contacter.
             </span>
           </span>
         </label>
       </FormSection>
 
       {error && (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/30 p-3 text-sm bg-destructive/10 text-destructive"
-        >
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <div className="flex gap-3 flex-col-reverse border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
@@ -445,83 +317,6 @@ function PhotoPicker({
         {photos.message ??
           `${photos.selected.length}/${MAX_LISTING_PHOTOS} photos · les annonces avec photos sont plus consultées.`}
       </p>
-    </div>
-  )
-}
-
-function FormSection({
-  step,
-  title,
-  description,
-  children,
-}: {
-  step: number
-  title: string
-  description: string
-  children: ReactNode
-}) {
-  const headingId = `section-${step}`
-  return (
-    <section
-      aria-labelledby={headingId}
-      className="grid gap-5 rounded-xl ring-1 ring-foreground/10 p-5 bg-card sm:p-6"
-    >
-      <header className="flex gap-3">
-        <span className="grid shrink-0 place-items-center size-7 rounded-full text-sm font-semibold bg-brand-surface text-primary">
-          {step}
-        </span>
-        <div className="grid gap-1">
-          <h2 id={headingId} className="font-heading text-lg font-semibold">
-            {title}
-          </h2>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </header>
-      {children}
-    </section>
-  )
-}
-
-function FieldGroup({
-  label,
-  htmlFor,
-  hint,
-  children,
-}: {
-  label: string
-  htmlFor: string
-  hint?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="grid gap-2">
-      <div className="flex gap-2 items-center justify-between">
-        <Label htmlFor={htmlFor}>{label}</Label>
-        {hint && (
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {hint}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-function NativeSelect({ className, ...props }: ComponentProps<'select'>) {
-  return (
-    <div className="relative">
-      <select
-        {...props}
-        className={cn(
-          'h-10 w-full appearance-none rounded-lg border border-input bg-transparent pr-9 pl-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30',
-          className,
-        )}
-      />
-      <ChevronDown
-        className="absolute right-3 top-1/2 size-4 text-muted-foreground pointer-events-none -translate-y-1/2"
-        aria-hidden
-      />
     </div>
   )
 }

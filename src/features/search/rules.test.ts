@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildPaginationWindow,
+  categoryLabel,
+  clearFilters,
   describeResults,
   formatPrice,
   formatPublishedAgo,
+  hasFilters,
   listDepartments,
   parseSearchCriteria,
   requiresLongerKeyword,
@@ -222,5 +226,98 @@ describe('formatPublishedAgo', () => {
     expect(formatPublishedAgo('2026-09-22T12:00:00Z', now)).toBe(
       'Il y a 5 jours',
     )
+  })
+})
+
+describe('categoryLabel', () => {
+  it('traduit un identifiant de catégorie en libellé français', () => {
+    expect(categoryLabel('multimedia')).toBe('Multimédia')
+    expect(categoryLabel('maison')).toBe('Maison')
+  })
+
+  it('ne renvoie rien pour une catégorie inconnue', () => {
+    expect(categoryLabel('voitures')).toBeUndefined()
+  })
+})
+
+describe('clearFilters', () => {
+  it('garde le mot-clé et le lieu saisis mais retire filtres, tri et page', () => {
+    expect(
+      clearFilters({
+        q: 'vélo',
+        lieu: 'Lyon',
+        categorie: 'loisirs',
+        departement: '69',
+        prixMin: 10,
+        prixMax: 200,
+        tri: 'prix-croissant',
+        page: 3,
+      }),
+    ).toEqual({ q: 'vélo', lieu: 'Lyon' })
+  })
+
+  it('renvoie une recherche vide sans mot-clé ni lieu', () => {
+    expect(clearFilters({ categorie: 'mode', page: 2 })).toEqual({})
+  })
+})
+
+describe('hasFilters', () => {
+  it('ignore le mot-clé, le lieu, le tri et la page', () => {
+    expect(
+      hasFilters({ q: 'vélo', lieu: 'Lyon', tri: 'prix-croissant', page: 2 }),
+    ).toBe(false)
+  })
+
+  it('détecte une catégorie, un département ou un prix', () => {
+    expect(hasFilters({ categorie: 'mode' })).toBe(true)
+    expect(hasFilters({ departement: '69' })).toBe(true)
+    expect(hasFilters({ prixMin: 0 })).toBe(true)
+    expect(hasFilters({ prixMax: 50 })).toBe(true)
+  })
+})
+
+describe('buildPaginationWindow', () => {
+  it('affiche toutes les pages quand il y en a peu', () => {
+    expect(buildPaginationWindow(1, 1)).toEqual([1])
+    expect(buildPaginationWindow(3, 5)).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('encadre la page courante entre la première et la dernière', () => {
+    expect(buildPaginationWindow(10, 20)).toEqual([
+      1,
+      'ellipsis',
+      9,
+      10,
+      11,
+      'ellipsis',
+      20,
+    ])
+  })
+
+  it('n’affiche des points de suspension que du côté des pages masquées', () => {
+    expect(buildPaginationWindow(1, 20)).toEqual([1, 2, 'ellipsis', 20])
+    expect(buildPaginationWindow(20, 20)).toEqual([1, 'ellipsis', 19, 20])
+    expect(buildPaginationWindow(4, 20)).toEqual([
+      1,
+      2,
+      3,
+      4,
+      5,
+      'ellipsis',
+      20,
+    ])
+  })
+
+  it('montre la page isolée plutôt que des points de suspension pour un seul trou', () => {
+    expect(buildPaginationWindow(3, 20)).toEqual([1, 2, 3, 4, 'ellipsis', 20])
+    expect(buildPaginationWindow(17, 20)).toEqual([
+      1,
+      'ellipsis',
+      16,
+      17,
+      18,
+      19,
+      20,
+    ])
   })
 })

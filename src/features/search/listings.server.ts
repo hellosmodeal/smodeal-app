@@ -1,5 +1,5 @@
 import { type Models, Query } from 'node-appwrite'
-import { adminClient } from '@/features/auth/session.server'
+import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
 import type { SearchCriteria, SearchListing } from './rules'
 import { searchCategories } from './rules'
@@ -167,24 +167,81 @@ export async function listPublicListings(
   }
 }
 
+export type PublicListingDetail = PublicListing & {
+  /** Computed from the session: the viewer owns this listing. */
+  isOwner: boolean
+  /** The seller consented to display a contact; never carries the contact itself. */
+  contactAvailable: boolean
+}
+
+type PrivateListingRow = PublicListingRow & { ownerId: string }
+
+export type PublicListingDependencies = {
+  findActiveListing: (
+    listingId: string,
+    now: Date,
+  ) => Promise<PrivateListingRow | null>
+  loadViewerId: () => Promise<string | null>
+  hasContactConsent: (ownerId: string) => Promise<boolean>
+}
+
+const productionListingDependencies: PublicListingDependencies = {
+  async findActiveListing(listingId, now) {
+    const response = await adminClient().tablesDB.listRows<
+      Models.Row & PrivateListingRow
+    >({
+      databaseId: getServerEnv().APPWRITE_DATABASE_ID,
+      tableId: LISTINGS_TABLE_ID,
+      queries: [
+        Query.equal('$id', listingId),
+        Query.equal('status', 'active'),
+        Query.greaterThan('expiresAt', now.toISOString()),
+        Query.select([...publicListingFields, 'ownerId']),
+        Query.limit(1),
+      ],
+      ttl: 0,
+    })
+    return response.rows[0] ?? null
+  },
+  async loadViewerId() {
+    const viewer = await loadCurrentUser()
+    return viewer?.$id ?? null
+  },
+  async hasContactConsent(ownerId) {
+    const response = await adminClient().tablesDB.listRows<
+      Models.Row & { userId: string; displayConsent: boolean }
+    >({
+      databaseId: getServerEnv().APPWRITE_DATABASE_ID,
+      tableId: 'contacts',
+      queries: [
+        Query.equal('userId', ownerId),
+        Query.select(['userId', 'displayConsent']),
+        Query.limit(1),
+      ],
+      ttl: 0,
+    })
+    return response.rows[0]?.displayConsent === true
+  },
+}
+
 export async function getPublicListing(
   listingId: string,
   now: Date,
-): Promise<PublicListing | null> {
-  const response = await adminClient().tablesDB.listRows<ListingRow>({
-    databaseId: getServerEnv().APPWRITE_DATABASE_ID,
-    tableId: LISTINGS_TABLE_ID,
-    queries: [
-      Query.equal('$id', listingId),
-      Query.equal('status', 'active'),
-      Query.greaterThan('expiresAt', now.toISOString()),
-      Query.select([...publicListingFields]),
-      Query.limit(1),
-    ],
-    ttl: 0,
-  })
-  const row = response.rows[0]
-  return row ? toPublicListing(row) : null
+  dependencies: PublicListingDependencies = productionListingDependencies,
+): Promise<PublicListingDetail | null> {
+  const row = await dependencies.findActiveListing(listingId, now)
+  if (!row) return null
+  const listing = toPublicListing(row)
+  if (!listing) return null
+  const [viewerId, contactAvailable] = await Promise.all([
+    dependencies.loadViewerId(),
+    dependencies.hasContactConsent(row.ownerId),
+  ])
+  return {
+    ...listing,
+    isOwner: viewerId !== null && viewerId === row.ownerId,
+    contactAvailable,
+  }
 }
 
 export const listingStorage = {

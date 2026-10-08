@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   completeEmailVerification,
   completePasswordRecovery,
+  registerAndSendVerification,
   requestPasswordRecovery,
   sendEmailVerification,
 } from './auth.server'
@@ -74,5 +75,79 @@ describe('completePasswordRecovery', () => {
       secret: 'secret',
       password: 'mot-de-passe-solide',
     })
+  })
+})
+
+describe('registerAndSendVerification', () => {
+  const data = {
+    name: 'Camille',
+    email: 'camille@example.test',
+    password: 'mot-de-passe-solide',
+  }
+  const session = { secret: 'session-secret', expire: '2027-01-01T00:00:00Z' }
+
+  function accounts(createEmailVerification = vi.fn().mockResolvedValue({})) {
+    const account = {
+      create: vi.fn().mockResolvedValue({}),
+      createEmailPasswordSession: vi.fn().mockResolvedValue(session),
+    }
+    const sessionAccount = vi.fn().mockReturnValue({ createEmailVerification })
+    return { account, sessionAccount, createEmailVerification }
+  }
+
+  it('envoie le lien de vérification avec la session du nouveau compte', async () => {
+    const { account, sessionAccount, createEmailVerification } = accounts()
+
+    const result = await registerAndSendVerification(
+      account,
+      sessionAccount,
+      data,
+      'https://smodeal.fr',
+    )
+
+    expect(result).toEqual({ session, verificationSent: true })
+    expect(sessionAccount).toHaveBeenCalledWith('session-secret')
+    expect(createEmailVerification).toHaveBeenCalledWith({
+      url: 'https://smodeal.fr/verification-email',
+    })
+  })
+
+  it('crée le compte même si l’envoi du lien échoue', async () => {
+    const { account, sessionAccount } = accounts(
+      vi.fn().mockRejectedValue(new Error('smtp indisponible')),
+    )
+
+    await expect(
+      registerAndSendVerification(
+        account,
+        sessionAccount,
+        data,
+        'https://smodeal.fr',
+      ),
+    ).resolves.toEqual({ session, verificationSent: false })
+  })
+
+  it('signale un envoi impossible sans origine publique configurée', async () => {
+    const { account, sessionAccount, createEmailVerification } = accounts()
+
+    await expect(
+      registerAndSendVerification(account, sessionAccount, data, undefined),
+    ).resolves.toEqual({ session, verificationSent: false })
+    expect(createEmailVerification).not.toHaveBeenCalled()
+  })
+
+  it('n’envoie rien si la création du compte échoue', async () => {
+    const { account, sessionAccount } = accounts()
+    account.create.mockRejectedValue(new Error('conflit'))
+
+    await expect(
+      registerAndSendVerification(
+        account,
+        sessionAccount,
+        data,
+        'https://smodeal.fr',
+      ),
+    ).rejects.toThrow('conflit')
+    expect(sessionAccount).not.toHaveBeenCalled()
   })
 })

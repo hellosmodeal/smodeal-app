@@ -139,15 +139,27 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
       )
       await sendEmailVerification(seller, env.PUBLIC_SITE_URL)
       const verification = await emailToken(email, '/verification-email')
+      const guest = new Account(
+        new Client()
+          .setEndpoint(env.APPWRITE_ENDPOINT)
+          .setProject(env.APPWRITE_PROJECT_ID),
+      )
+      await expect(
+        completeEmailVerification(
+          account,
+          verification.userId,
+          verification.secret,
+        ),
+      ).rejects.toThrow()
       await completeEmailVerification(
-        seller,
+        guest,
         verification.userId,
         verification.secret,
       )
       expect((await seller.get()).emailVerification).toBe(true)
       await expect(
         completeEmailVerification(
-          seller,
+          guest,
           verification.userId,
           verification.secret,
         ),
@@ -433,7 +445,7 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
           suspension,
           new Date(),
         ),
-      ).rejects.toThrow('administrateur')
+      ).rejects.toThrow('vous suspendre vous-même')
       expect((await users.get({ userId: user.$id })).status).toBe(true)
       await users.updateLabels({ userId: user.$id, labels: [] })
       await users.updateLabels({ userId: readerUser.$id, labels: ['admin'] })

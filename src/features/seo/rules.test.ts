@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildPageHead, resolveSeoConfig } from './rules'
+import {
+  buildPageHead,
+  buildRobotsTxt,
+  buildSitemapXml,
+  resolveSeoConfig,
+} from './rules'
 
 const page = {
   title: 'Smodeal — Les belles choses circulent',
@@ -127,5 +132,73 @@ describe('buildPageHead', () => {
     expect(head.meta).toContainEqual({ title: page.title })
     expect(metaContent(head, 'robots')).toBe('noindex, nofollow')
     expect(metaContent(head, 'og:image')).toBeUndefined()
+  })
+})
+
+describe('buildRobotsTxt', () => {
+  it('bloque tout le site hors de l’hôte canonique indexable', () => {
+    const robots = buildRobotsTxt({
+      origin: 'https://smodeal-recette.appwrite.network',
+      indexable: false,
+    })
+    expect(robots).toBe('User-agent: *\nDisallow: /\n')
+  })
+
+  it('ferme les espaces privés et les pages d’authentification sur l’hôte canonique', () => {
+    const robots = buildRobotsTxt({
+      origin: 'https://smodeal.com',
+      indexable: true,
+    })
+    const lines = robots.split('\n')
+    for (const path of [
+      '/compte',
+      '/deposer',
+      '/mes-annonces',
+      '/moderation',
+      '/annonces/*/modifier',
+      '/connexion',
+      '/inscription',
+      '/mot-de-passe-oublie',
+      '/reinitialiser-mot-de-passe',
+      '/verification-email',
+    ]) {
+      expect(lines).toContain(`Disallow: ${path}`)
+    }
+    expect(lines).not.toContain('Disallow: /')
+    expect(lines).toContain('Sitemap: https://smodeal.com/sitemap.xml')
+  })
+})
+
+describe('buildSitemapXml', () => {
+  it('liste l’accueil et chaque annonce publique avec sa date de mise à jour', () => {
+    const xml = buildSitemapXml('https://smodeal.com', [
+      { id: 'annonce-1', lastmod: '2026-10-01T10:00:00.000Z' },
+      { id: 'annonce-2', lastmod: '2026-10-02T08:30:00.000Z' },
+    ])
+    expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true)
+    expect(xml).toContain(
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    )
+    expect(xml).toContain('<url><loc>https://smodeal.com/</loc></url>')
+    expect(xml).toContain(
+      '<url><loc>https://smodeal.com/annonces/annonce-1</loc><lastmod>2026-10-01T10:00:00.000Z</lastmod></url>',
+    )
+    expect(xml).toContain('https://smodeal.com/annonces/annonce-2')
+  })
+
+  it('n’inclut pas la recherche, marquée noindex', () => {
+    const xml = buildSitemapXml('https://smodeal.com', [])
+    expect(xml).not.toContain('/recherche')
+  })
+
+  it('échappe les caractères XML et encode les identifiants', () => {
+    const xml = buildSitemapXml('https://smodeal.com', [
+      { id: 'a&b<c>"d\'', lastmod: '2026-10-01T10:00:00.000Z&' },
+    ])
+    expect(xml).toContain(
+      '<loc>https://smodeal.com/annonces/a%26b%3Cc%3E%22d&apos;</loc>',
+    )
+    expect(xml).not.toMatch(/&(?!amp;|lt;|gt;|quot;|apos;)/)
+    expect(xml).toContain('<lastmod>2026-10-01T10:00:00.000Z&amp;</lastmod>')
   })
 })

@@ -23,6 +23,10 @@ export function createAdminClient(userAgent?: string) {
   }
 }
 
+export function createGuestAccount(userAgent?: string) {
+  return new Account(createBaseClient(userAgent))
+}
+
 export function createSessionClient(secret: string, userAgent?: string) {
   const client = createBaseClient(userAgent).setSession(secret)
   return {

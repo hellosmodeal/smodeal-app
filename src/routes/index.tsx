@@ -1,28 +1,12 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import {
-  Armchair,
-  ArrowRight,
-  Baby,
-  Bike,
-  Grid2X2,
-  House,
-  Laptop,
-  Leaf,
-  MapPin,
-  Search,
-  Shirt,
-} from 'lucide-react'
-import { type FormEvent, useState } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { Armchair, ArrowRight } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
+import { CategoryTabs } from '@/features/search/components/category-tabs'
+import { ListingCard } from '@/features/search/components/listing-card'
+import { SearchBar } from '@/features/search/components/search-bar'
 import { findListings } from '@/features/search/functions'
-import {
-  formatPrice,
-  formatPublishedAgo,
-  parseSearchCriteria,
-  searchCategories,
-} from '@/features/search/rules'
 import { getSeoConfig } from '@/features/seo/functions'
 import { buildPageHead } from '@/features/seo/rules'
-import { cn } from '@/lib/utils'
 
 const homePage = {
   title: 'Smodeal — Les belles choses circulent',
@@ -44,32 +28,10 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-const categoryIcons = {
-  maison: House,
-  multimedia: Laptop,
-  mode: Shirt,
-  loisirs: Bike,
-  enfants: Baby,
-  jardin: Leaf,
-}
-
 function Home() {
   const { results } = Route.useLoaderData()
-  const [keyword, setKeyword] = useState('')
-  const [city, setCity] = useState('')
   const listings = results.items
-  const navigate = useNavigate()
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    void navigate({
-      to: '/recherche',
-      search: parseSearchCriteria({
-        q: keyword,
-        lieu: city,
-      }),
-    })
-  }
+  const now = new Date(results.generatedAt)
 
   return (
     <>
@@ -90,6 +52,8 @@ function Home() {
             <img
               src="/brand/smodeal-symbol.svg"
               alt=""
+              width={56}
+              height={56}
               className="object-contain size-14"
             />
           </span>
@@ -97,91 +61,8 @@ function Home() {
       </section>
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <search>
-          <form
-            action="/recherche"
-            method="get"
-            aria-label="Rechercher des annonces"
-            onSubmit={handleSearch}
-            className="grid gap-3 py-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto]"
-          >
-            <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
-              <Search aria-hidden="true" className="shrink-0 size-5" />
-              <label htmlFor="search-keyword" className="sr-only">
-                Que recherchez-vous ?
-              </label>
-              <input
-                id="search-keyword"
-                name="q"
-                type="search"
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                placeholder="Que recherchez-vous ?"
-                className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
-              />
-            </div>
-            <div className="flex gap-3 items-center min-h-12 rounded-lg border border-border px-4 bg-card">
-              <MapPin aria-hidden="true" className="shrink-0 size-5" />
-              <label htmlFor="search-city" className="sr-only">
-                Ville, code postal ou département
-              </label>
-              <input
-                id="search-city"
-                name="lieu"
-                type="search"
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-                placeholder="Ville, code postal ou département"
-                className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
-              />
-            </div>
-            <button
-              type="submit"
-              className="min-h-12 rounded-lg px-10 font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
-            >
-              Rechercher
-            </button>
-          </form>
-        </search>
-
-        <nav
-          aria-label="Catégories"
-          className="overflow-x-auto flex gap-3 border-b border-border sm:justify-between"
-        >
-          <button
-            type="button"
-            onClick={() => void navigate({ to: '/recherche', search: {} })}
-            className={cn(
-              'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
-              'border-brand text-brand-dark',
-            )}
-          >
-            <Grid2X2 aria-hidden="true" className="size-5" />
-            Tout
-          </button>
-          {searchCategories.map((category) => {
-            const Icon = categoryIcons[category.slug]
-            return (
-              <button
-                key={category.slug}
-                type="button"
-                onClick={() =>
-                  void navigate({
-                    to: '/recherche',
-                    search: { categorie: category.slug },
-                  })
-                }
-                className={cn(
-                  'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
-                  'border-transparent hover:text-brand-dark',
-                )}
-              >
-                <Icon aria-hidden="true" className="size-5" />
-                {category.label}
-              </button>
-            )
-          })}
-        </nav>
+        <SearchBar />
+        <CategoryTabs />
       </div>
 
       <section
@@ -189,60 +70,25 @@ function Home() {
         aria-labelledby="listings-title"
         className="max-w-7xl mx-auto px-5 pt-5 pb-2 sm:px-8"
       >
-        <div className="flex gap-4 flex-col justify-between sm:flex-row sm:items-center">
-          <div className="flex gap-3 items-center">
-            <h2
-              id="listings-title"
-              className="font-heading text-2xl font-bold tracking-[-0.04em] sm:text-3xl"
-            >
-              Les dernières annonces
-            </h2>
-            <span className="text-xs text-muted-foreground">
-              {results.total} annonce{results.total > 1 ? 's' : ''}
-            </span>
-          </div>
+        <div className="flex gap-3 items-center">
+          <h2
+            id="listings-title"
+            className="font-heading text-2xl font-bold tracking-[-0.04em] sm:text-3xl"
+          >
+            Les dernières annonces
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {results.total} annonce{results.total > 1 ? 's' : ''}
+          </span>
         </div>
-        <p aria-live="polite" className="sr-only">
-          {listings.length} résultat
-          {listings.length > 1 ? 's' : ''}
-        </p>
         {listings.length > 0 ? (
-          <div className="grid gap-y-3 gap-x-4 grid-cols-1 mt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="grid gap-y-3 gap-x-4 grid-cols-1 mt-4 sm:grid-cols-2 lg:grid-cols-4">
             {listings.map((listing) => (
-              <article key={listing.id}>
-                <Link
-                  to="/annonces/$listingId"
-                  params={{ listingId: listing.id }}
-                >
-                  {listing.image ? (
-                    <img
-                      src={listing.image}
-                      alt={listing.title}
-                      loading="lazy"
-                      className="object-cover aspect-[1.65] w-full rounded-lg"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center aspect-[1.65] w-full rounded-lg text-sm bg-muted text-muted-foreground">
-                      Pas de photo
-                    </div>
-                  )}
-                  <h3 className="mt-2 text-sm font-semibold">
-                    {listing.title}
-                  </h3>
-                  <p className="text-lg font-bold">
-                    {formatPrice(listing.priceCents)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {listing.city} ·{' '}
-                    {formatPublishedAgo(
-                      listing.publishedAt,
-                      new Date(results.generatedAt),
-                    )}
-                  </p>
-                </Link>
-              </article>
+              <li key={listing.id}>
+                <ListingCard listing={listing} now={now} />
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
           <div className="rounded-lg border border-dashed border-border py-12 px-6 text-center">
             <Armchair
@@ -254,13 +100,16 @@ function Home() {
             </p>
           </div>
         )}
-        <div className="mt-2 text-center">
+        <div className="mt-4 text-center">
           <Link
             to="/recherche"
-            className="inline-flex gap-2 items-center rounded-lg border border-brand py-2 px-5 text-sm font-semibold text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
+            className={buttonVariants({
+              variant: 'outline',
+              className: 'font-semibold',
+            })}
           >
-            Voir toutes les annonces{' '}
-            <ArrowRight aria-hidden="true" className="size-4" />
+            Voir toutes les annonces
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
       </section>
@@ -272,7 +121,10 @@ function Home() {
           </h2>
           <Link
             to="/inscription"
-            className="shrink-0 rounded-lg py-2.5 px-5 text-center text-sm font-semibold bg-brand-dark text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
+            className={buttonVariants({
+              size: 'lg',
+              className: 'text-sm font-semibold',
+            })}
           >
             Créer un compte pour vendre
           </Link>

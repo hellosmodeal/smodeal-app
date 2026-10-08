@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { setResponseHeader } from '@tanstack/react-start/server'
 import { z } from 'zod'
 import { getPublicListing, listPublicListings } from './listings.server'
 import {
@@ -48,4 +49,7 @@ export const findPublicListing = createServerFn({ method: 'GET' })
   .inputValidator(
     z.object({ listingId: z.string().regex(/^[A-Za-z0-9._-]{1,36}$/) }),
   )
-  .handler(async ({ data }) => getPublicListing(data.listingId, new Date()))
+  .handler(async ({ data }) => {
+    setResponseHeader('Cache-Control', 'private, no-store')
+    return getPublicListing(data.listingId, new Date())
+  })

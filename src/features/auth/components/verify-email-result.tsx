@@ -1,15 +1,10 @@
 import { Link } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { verifyEmail } from '../functions'
+import { AuthCard } from './auth-card'
+import { InvalidLinkNotice } from './invalid-link'
 
 export function VerifyEmailResult({
   userId,
@@ -19,48 +14,49 @@ export function VerifyEmailResult({
   secret?: string
 }) {
   const verifyEmailFn = useServerFn(verifyEmail)
-  const [message, setMessage] = useState<string | null>(null)
+  const [failure, setFailure] = useState<string | null>(
+    userId && secret
+      ? null
+      : 'Ce lien de vérification est incomplet ou invalide.',
+  )
   const [verified, setVerified] = useState(false)
   const [pending, setPending] = useState(false)
 
   async function handleVerification() {
-    if (!userId || !secret) {
-      setMessage('Ce lien de vérification est incomplet ou invalide.')
-      return
-    }
-
+    if (!userId || !secret) return
     setPending(true)
-    setMessage(null)
+    setFailure(null)
     try {
       const result = await verifyEmailFn({ data: { userId, secret } })
-      if (result.ok) {
-        setVerified(true)
-        setMessage('Votre adresse email est maintenant vérifiée.')
-      } else setMessage(result.message)
+      if (result.ok) setVerified(true)
+      else setFailure(result.message)
     } catch {
-      setMessage('Ce lien est invalide ou expiré. Demandez-en un nouveau.')
+      setFailure('Ce lien est invalide ou expiré. Demandez-en un nouveau.')
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <CardHeader>
-        <CardTitle>Vérification de votre email</CardTitle>
-        <CardDescription>
-          {message ?? 'Confirmez la vérification de votre adresse email.'}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {verified ? (
-          <Button render={<Link to="/compte" />}>Accéder à mon compte</Button>
-        ) : (
-          <Button type="button" onClick={handleVerification} disabled={pending}>
-            {pending ? 'Vérification en cours…' : 'Vérifier mon adresse email'}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <AuthCard
+      title="Vérification de votre email"
+      description={
+        verified
+          ? 'Votre adresse email est maintenant vérifiée.'
+          : 'Confirmez la vérification de votre adresse email.'
+      }
+    >
+      {failure ? (
+        <InvalidLinkNotice message={failure} action="account" />
+      ) : verified ? (
+        <Link to="/compte" className={buttonVariants()}>
+          Accéder à mon compte
+        </Link>
+      ) : (
+        <Button type="button" onClick={handleVerification} disabled={pending}>
+          {pending ? 'Vérification en cours…' : 'Vérifier mon adresse email'}
+        </Button>
+      )}
+    </AuthCard>
   )
 }

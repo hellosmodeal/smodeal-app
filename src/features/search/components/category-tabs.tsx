@@ -30,22 +30,33 @@ const tabs = [
   })),
 ]
 
-export function CategoryTabs({ criteria }: { criteria: SearchCriteria }) {
+/**
+ * Category links to the search page. Without criteria (home page), no tab is
+ * marked as current and each link opens its category alone.
+ */
+export function CategoryTabs({ criteria }: { criteria?: SearchCriteria }) {
   return (
     <nav
       aria-label="Catégories"
       className="overflow-x-auto flex gap-3 border-b border-border sm:justify-between"
     >
       {tabs.map(({ slug, label, Icon }) => {
-        const active = criteria.categorie === slug
+        const active = criteria !== undefined && criteria.categorie === slug
         return (
           <Link
+            activeOptions={{ exact: true }}
             key={label}
             to="/recherche"
-            search={{ ...criteria, categorie: slug, page: undefined }}
+            search={
+              criteria
+                ? { ...criteria, categorie: slug, page: undefined }
+                : slug
+                  ? { categorie: slug }
+                  : {}
+            }
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'flex shrink-0 items-center gap-3 border-b-2 px-2 py-3 text-sm focus-visible:outline-2 focus-visible:outline-brand',
+              'flex shrink-0 items-center gap-3 rounded-t-md border-b-2 px-2 py-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset',
               active
                 ? 'border-brand text-brand-dark'
                 : 'border-transparent hover:text-brand-dark',

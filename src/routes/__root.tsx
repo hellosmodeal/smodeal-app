@@ -7,10 +7,13 @@ import {
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { Plus } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
+import { buttonVariants } from '@/components/ui/button'
 import { SignOutButton } from '@/features/auth/components/sign-out-button'
 import type { CurrentUser } from '@/features/auth/functions'
 import { getCurrentUser } from '@/features/auth/functions'
+import { contactEmail } from '@/features/legal/content'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRouteWithContext<{
@@ -57,6 +60,22 @@ export const Route = createRootRouteWithContext<{
   shellComponent: RootDocument,
 })
 
+const navLinkClass =
+  'rounded-sm text-foreground/75 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring data-[status=active]:text-foreground'
+
+const footerLinkClass =
+  'rounded-sm hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring'
+
+const legalLinks = [
+  { to: '/mentions-legales', label: 'Mentions légales' },
+  { to: '/cgu', label: 'Conditions d’utilisation' },
+  { to: '/confidentialite', label: 'Confidentialité' },
+  { to: '/cookies', label: 'Cookies' },
+] as const
+
+// TODO : adresse provisoire tant que l'éditeur n'a pas validé le contact (voir features/legal/content.ts).
+const contactAddress = contactEmail.placeholder
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { user } = Route.useRouteContext()
   const pathname = useLocation({ select: (location) => location.pathname })
@@ -70,10 +89,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="antialiased bg-background text-foreground">
         <header className="relative z-10 border-b border-border/70 bg-card">
-          <div className="flex gap-2 items-center justify-between h-16 max-w-7xl mx-auto px-4 sm:gap-6 sm:px-8">
+          <div className="flex gap-y-2 gap-x-4 flex-wrap items-center justify-between max-w-7xl mx-auto py-3 px-4 sm:flex-nowrap sm:gap-6 sm:h-16 sm:py-0 sm:px-8">
             <Link
               to="/"
-              className="shrink-0 rounded-sm outline-offset-4"
+              className="shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
               aria-label="Smodeal, accueil"
             >
               <BrandMark />
@@ -81,40 +100,67 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {isHome && (
               <a
                 href="#annonces"
-                className="hidden mr-auto text-sm font-medium sm:block hover:text-brand-dark"
+                className="hidden rounded-sm mr-auto text-sm font-medium sm:block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring hover:text-primary"
               >
                 Explorer
               </a>
             )}
+            {user ? (
+              <Link
+                to="/deposer"
+                className={buttonVariants({
+                  size: 'sm',
+                  className: 'sm:order-last',
+                })}
+              >
+                <Plus aria-hidden="true" />
+                <span className="sm:hidden">Déposer</span>
+                <span className="hidden sm:inline">Déposer une annonce</span>
+              </Link>
+            ) : (
+              <Link
+                to="/connexion"
+                search={{ redirect: '/deposer' }}
+                className={buttonVariants({
+                  size: 'sm',
+                  className: 'sm:order-last',
+                })}
+              >
+                <Plus aria-hidden="true" />
+                <span className="sm:hidden">Déposer</span>
+                <span className="hidden sm:inline">Déposer une annonce</span>
+              </Link>
+            )}
             <nav
-              className="flex gap-2 shrink-0 items-center text-xs font-medium sm:gap-6 sm:text-sm"
+              className="flex gap-y-1 gap-x-4 flex-wrap items-center w-full text-sm font-medium sm:flex-nowrap sm:gap-6 sm:w-auto sm:ml-auto"
               aria-label="Navigation principale"
             >
               {user ? (
                 <>
-                  <Link
-                    to="/compte"
-                    className="rounded-sm text-foreground/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:text-foreground"
-                  >
+                  <Link to="/mes-annonces" className={navLinkClass}>
+                    Mes annonces
+                  </Link>
+                  {user.isAdmin && (
+                    <Link
+                      to="/moderation"
+                      search={{ after: undefined }}
+                      className={navLinkClass}
+                    >
+                      Modération
+                    </Link>
+                  )}
+                  <Link to="/compte" className={navLinkClass}>
                     Mon compte
                   </Link>
                   <SignOutButton />
                 </>
               ) : (
                 <>
-                  <Link
-                    to="/connexion"
-                    className="rounded-sm text-foreground/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:text-foreground"
-                  >
-                    <span className="sm:hidden">Connexion</span>
-                    <span className="hidden sm:inline">Se connecter</span>
+                  <Link to="/connexion" className={navLinkClass}>
+                    Se connecter
                   </Link>
-                  <Link
-                    to="/inscription"
-                    className="rounded-lg py-2.5 px-3 bg-brand-dark text-white transition-colors sm:px-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand hover:brightness-90"
-                  >
-                    <span className="sm:hidden">S’inscrire</span>
-                    <span className="hidden sm:inline">Créer un compte</span>
+                  <Link to="/inscription" className={navLinkClass}>
+                    Créer un compte
                   </Link>
                 </>
               )}
@@ -131,9 +177,30 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <footer className="border-t border-border bg-card">
-          <div className="flex gap-4 flex-col justify-between max-w-7xl mx-auto py-8 px-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:px-8">
-            <span>© 2026 Smodeal · Les belles choses circulent.</span>
-            <span>Petites annonces entre particuliers en France.</span>
+          <div className="flex gap-6 flex-col max-w-7xl mx-auto py-8 px-5 text-sm text-muted-foreground sm:px-8">
+            <nav aria-label="Informations légales">
+              <ul className="flex gap-y-2 gap-x-6 flex-wrap">
+                {legalLinks.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to} className={footerLinkClass}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <a
+                    href={`mailto:${contactAddress}`}
+                    className={footerLinkClass}
+                  >
+                    Contact : {contactAddress}
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <div className="flex gap-2 flex-col justify-between sm:flex-row sm:items-center">
+              <span>© 2026 Smodeal · Les belles choses circulent.</span>
+              <span>Petites annonces entre particuliers en France.</span>
+            </div>
           </div>
         </footer>
         <TanStackDevtools

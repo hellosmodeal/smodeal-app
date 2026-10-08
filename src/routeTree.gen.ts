@@ -11,11 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as CguRouteImport } from './routes/cgu'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as ConnexionRouteImport } from './routes/connexion'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as InscriptionRouteImport } from './routes/inscription'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
 import { Route as RechercheRouteImport } from './routes/recherche'
 import { Route as ReinitialiserMotDePasseRouteImport } from './routes/reinitialiser-mot-de-passe'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as VerificationEmailRouteImport } from './routes/verification-email'
 import { Route as AuthedCompteRouteImport } from './routes/_authed/compte'
 import { Route as AuthedDeposerRouteImport } from './routes/_authed/deposer'
@@ -33,14 +39,34 @@ const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CguRoute = CguRouteImport.update({
+  id: '/cgu',
+  path: '/cgu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConnexionRoute = ConnexionRouteImport.update({
   id: '/connexion',
   path: '/connexion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InscriptionRoute = InscriptionRouteImport.update({
   id: '/inscription',
   path: '/inscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MotDePasseOublieRoute = MotDePasseOublieRouteImport.update({
@@ -56,6 +82,16 @@ const RechercheRoute = RechercheRouteImport.update({
 const ReinitialiserMotDePasseRoute = ReinitialiserMotDePasseRouteImport.update({
   id: '/reinitialiser-mot-de-passe',
   path: '/reinitialiser-mot-de-passe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerificationEmailRoute = VerificationEmailRouteImport.update({
@@ -97,11 +133,17 @@ const AuthedAnnoncesListingIdModifierRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cgu': typeof CguRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/cookies': typeof CookiesRoute
   '/inscription': typeof InscriptionRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
   '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification-email': typeof VerificationEmailRoute
   '/compte': typeof AuthedCompteRoute
   '/deposer': typeof AuthedDeposerRoute
@@ -112,11 +154,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cgu': typeof CguRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/cookies': typeof CookiesRoute
   '/inscription': typeof InscriptionRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
   '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification-email': typeof VerificationEmailRoute
   '/compte': typeof AuthedCompteRoute
   '/deposer': typeof AuthedDeposerRoute
@@ -129,11 +177,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/cgu': typeof CguRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/connexion': typeof ConnexionRoute
+  '/cookies': typeof CookiesRoute
   '/inscription': typeof InscriptionRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/recherche': typeof RechercheRoute
   '/reinitialiser-mot-de-passe': typeof ReinitialiserMotDePasseRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification-email': typeof VerificationEmailRoute
   '/_authed/compte': typeof AuthedCompteRoute
   '/_authed/deposer': typeof AuthedDeposerRoute
@@ -146,11 +200,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cgu'
+    | '/confidentialite'
     | '/connexion'
+    | '/cookies'
     | '/inscription'
+    | '/mentions-legales'
     | '/mot-de-passe-oublie'
     | '/recherche'
     | '/reinitialiser-mot-de-passe'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/verification-email'
     | '/compte'
     | '/deposer'
@@ -161,11 +221,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cgu'
+    | '/confidentialite'
     | '/connexion'
+    | '/cookies'
     | '/inscription'
+    | '/mentions-legales'
     | '/mot-de-passe-oublie'
     | '/recherche'
     | '/reinitialiser-mot-de-passe'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/verification-email'
     | '/compte'
     | '/deposer'
@@ -177,11 +243,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/cgu'
+    | '/confidentialite'
     | '/connexion'
+    | '/cookies'
     | '/inscription'
+    | '/mentions-legales'
     | '/mot-de-passe-oublie'
     | '/recherche'
     | '/reinitialiser-mot-de-passe'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/verification-email'
     | '/_authed/compte'
     | '/_authed/deposer'
@@ -194,11 +266,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  CguRoute: typeof CguRoute
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
   ConnexionRoute: typeof ConnexionRoute
+  CookiesRoute: typeof CookiesRoute
   InscriptionRoute: typeof InscriptionRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
   MotDePasseOublieRoute: typeof MotDePasseOublieRoute
   RechercheRoute: typeof RechercheRoute
   ReinitialiserMotDePasseRoute: typeof ReinitialiserMotDePasseRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerificationEmailRoute: typeof VerificationEmailRoute
   AnnoncesListingIdRoute: typeof AnnoncesListingIdRoute
 }
@@ -219,6 +297,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cgu': {
+      id: '/cgu'
+      path: '/cgu'
+      fullPath: '/cgu'
+      preLoaderRoute: typeof CguRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/connexion': {
       id: '/connexion'
       path: '/connexion'
@@ -226,11 +318,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnexionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inscription': {
       id: '/inscription'
       path: '/inscription'
       fullPath: '/inscription'
       preLoaderRoute: typeof InscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mot-de-passe-oublie': {
@@ -252,6 +358,20 @@ declare module '@tanstack/react-router' {
       path: '/reinitialiser-mot-de-passe'
       fullPath: '/reinitialiser-mot-de-passe'
       preLoaderRoute: typeof ReinitialiserMotDePasseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verification-email': {
@@ -328,11 +448,17 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  CguRoute: CguRoute,
+  ConfidentialiteRoute: ConfidentialiteRoute,
   ConnexionRoute: ConnexionRoute,
+  CookiesRoute: CookiesRoute,
   InscriptionRoute: InscriptionRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
   MotDePasseOublieRoute: MotDePasseOublieRoute,
   RechercheRoute: RechercheRoute,
   ReinitialiserMotDePasseRoute: ReinitialiserMotDePasseRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerificationEmailRoute: VerificationEmailRoute,
   AnnoncesListingIdRoute: AnnoncesListingIdRoute,
 }

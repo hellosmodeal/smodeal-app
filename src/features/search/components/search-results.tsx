@@ -1,12 +1,16 @@
-import { Link } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, ImageOff, SearchX } from 'lucide-react'
+import { Link, useRouterState } from '@tanstack/react-router'
+import { ArrowLeft, ArrowRight, SearchX } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
-  formatPrice,
-  formatPublishedAgo,
+  buildPaginationWindow,
+  clearFilters,
+  hasFilters,
   type SearchCriteria,
   type SearchListing,
 } from '../rules'
+import { ListingCard } from './listing-card'
 
 export function ResultsGrid({
   items,
@@ -19,44 +23,27 @@ export function ResultsGrid({
     <ul className="grid gap-y-5 gap-x-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((listing) => (
         <li key={listing.id}>
-          <ResultCard listing={listing} now={now} />
+          <ListingCard listing={listing} now={now} headingLevel="h2" />
         </li>
       ))}
     </ul>
   )
 }
 
-function ResultCard({ listing, now }: { listing: SearchListing; now: Date }) {
+/** Dims the current results while the next search is loading. */
+export function PendingResults({ children }: { children: ReactNode }) {
+  const isLoading = useRouterState({ select: (state) => state.isLoading })
+
   return (
-    <article>
-      {listing.image ? (
-        <img
-          src={listing.image}
-          alt={listing.title}
-          loading="lazy"
-          className="object-cover aspect-[1.65] w-full rounded-lg"
-        />
-      ) : (
-        <div className="flex gap-2 flex-col items-center justify-center aspect-[1.65] w-full rounded-lg text-sm bg-muted text-muted-foreground">
-          <ImageOff aria-hidden="true" className="size-6" />
-          Pas de photo
-        </div>
+    <div
+      aria-busy={isLoading}
+      className={cn(
+        'transition-opacity',
+        isLoading && 'opacity-50 pointer-events-none',
       )}
-      <Link
-        to="/annonces/$listingId"
-        params={{ listingId: listing.id }}
-        className="block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-      >
-        <h3 className="mt-2 text-sm font-semibold">{listing.title}</h3>
-        <p className="text-lg font-bold">{formatPrice(listing.priceCents)}</p>
-        <p className="text-sm text-muted-foreground">
-          {listing.city} ·{' '}
-          <time dateTime={listing.publishedAt}>
-            {formatPublishedAgo(listing.publishedAt, now)}
-          </time>
-        </p>
-      </Link>
-    </article>
+    >
+      {children}
+    </div>
   )
 }
 
@@ -70,19 +57,29 @@ export function EmptyResults({ criteria }: { criteria: SearchCriteria }) {
       <p className="mt-1 text-sm text-muted-foreground">
         Essayez un autre mot-clé, un autre lieu ou élargissez vos filtres.
       </p>
-      <Link
-        to="/recherche"
-        search={criteria.q ? { q: criteria.q } : {}}
-        className="inline-flex rounded-lg border border-brand mt-4 py-2 px-4 text-sm font-semibold text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
-      >
-        Effacer les filtres
-      </Link>
+      <div className="flex gap-3 flex-wrap justify-center mt-4">
+        {hasFilters(criteria) && (
+          <Link
+            activeOptions={{ exact: true }}
+            to="/recherche"
+            search={clearFilters(criteria)}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            Effacer les filtres
+          </Link>
+        )}
+        <Link
+          activeOptions={{ exact: true }}
+          to="/recherche"
+          search={{}}
+          className={buttonVariants()}
+        >
+          Voir toutes les annonces
+        </Link>
+      </div>
     </div>
   )
 }
-
-const pageLinkClass =
-  'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand'
 
 export function Pagination({
   criteria,
@@ -94,56 +91,65 @@ export function Pagination({
   pageCount: number
 }) {
   if (pageCount <= 1) return null
-  const pages = Array.from({ length: pageCount }, (_, index) => index + 1)
   const toPage = (target: number) => ({
     ...criteria,
     page: target === 1 ? undefined : target,
   })
 
   return (
-    <nav aria-label="Pagination" className="flex gap-2 justify-center mt-8">
+    <nav
+      aria-label="Pagination des résultats"
+      className="flex gap-2 flex-wrap items-center justify-center mt-8"
+    >
       {page > 1 && (
         <Link
+          activeOptions={{ exact: true }}
           to="/recherche"
           search={toPage(page - 1)}
-          className={cn(pageLinkClass, 'gap-2 border-brand text-brand-dark')}
+          rel="prev"
+          className={buttonVariants({ variant: 'outline', size: 'lg' })}
         >
-          <ArrowLeft aria-hidden="true" className="size-4" />
+          <ArrowLeft aria-hidden="true" />
           Précédent
         </Link>
       )}
-      {pages.map((target) =>
-        target === page ? (
+      {buildPaginationWindow(page, pageCount).map((item, index) =>
+        item === 'ellipsis' ? (
           <span
-            key={target}
-            aria-current="page"
-            className={cn(
-              pageLinkClass,
-              'border-brand-dark bg-brand-dark text-white',
-            )}
+            // biome-ignore lint/suspicious/noArrayIndexKey: an ellipsis has no identity besides its position
+            key={`ellipsis-${index}`}
+            aria-hidden="true"
+            className="px-1 text-muted-foreground"
           >
-            {target}
+            …
           </span>
         ) : (
           <Link
-            key={target}
+            activeOptions={{ exact: true }}
+            key={item}
             to="/recherche"
-            search={toPage(target)}
-            aria-label={`Page ${target}`}
-            className={cn(pageLinkClass, 'border-border hover:text-brand-dark')}
+            search={toPage(item)}
+            aria-label={`Page ${item}`}
+            aria-current={item === page ? 'page' : undefined}
+            className={buttonVariants({
+              variant: item === page ? 'default' : 'outline',
+              size: 'icon-lg',
+            })}
           >
-            {target}
+            {item}
           </Link>
         ),
       )}
       {page < pageCount && (
         <Link
+          activeOptions={{ exact: true }}
           to="/recherche"
           search={toPage(page + 1)}
-          className={cn(pageLinkClass, 'gap-2 border-brand text-brand-dark')}
+          rel="next"
+          className={buttonVariants({ variant: 'outline', size: 'lg' })}
         >
           Suivant
-          <ArrowRight aria-hidden="true" className="size-4" />
+          <ArrowRight aria-hidden="true" />
         </Link>
       )}
     </nav>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SellerContact, Viewer } from './rules'
-import { canRevealPhone } from './rules'
+import { canRevealPhone, formatPhoneForDisplay } from './rules'
 
 const contact: SellerContact = { ownerId: 'seller-1', displayConsent: true }
 const member: Viewer = { id: 'buyer-1', suspended: false }
@@ -31,5 +31,16 @@ describe('canRevealPhone', () => {
         { ...contact, displayConsent: false },
       ),
     ).toBe(true)
+  })
+})
+
+describe('formatPhoneForDisplay', () => {
+  it.each([
+    ['0600000001', '06 00 00 00 01'],
+    ['06.00.00.00.01', '06 00 00 00 01'],
+    ['+33600000001', '+33 6 00 00 00 01'],
+    ['+33 (0)6 00 00 00 01', '+33 (0)6 00 00 00 01'],
+  ])('affiche %s comme %s', (input, expected) => {
+    expect(formatPhoneForDisplay(input)).toBe(expected)
   })
 })
