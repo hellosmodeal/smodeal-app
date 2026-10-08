@@ -11,7 +11,7 @@
 | Vendeur | Liste paginée, édition des champs publics des annonces actives ou expirées, vendu, retrait, renouvellement après expiration ; propriété contrôlée côté serveur et annonce retirée par modération non réactivable |
 | Découverte | Accueil, filtres, pagination et fiche SSR sur Appwrite ; aucune annonce fictive dans les résultats ; filtre actif et non expiré à chaque lecture publique |
 | Contact | Demande POST d’un membre actif, accord du vendeur ou propre numéro du propriétaire ; réponse privée sans cache ; aucune coordonnée dans les données publiques |
-| Modération | Signalement d’une annonce disponible par un membre distinct du vendeur ; liste paginée réservée au rôle Appwrite `admin` ; retrait ou classement avec journal transactionnel |
+| Modération | Signalement d’une annonce disponible par un membre distinct du vendeur ; liste paginée réservée au rôle Appwrite `admin` ; retrait ou classement avec journal transactionnel ; suspension du vendeur depuis un signalement : compte bloqué, sessions fermées, annonces actives ou expirées retirées, signalement résolu et journal `suspend_user` ; un administrateur ne peut pas être suspendu |
 | Anti-abus | Compteurs privés partagés dans Appwrite, quotas par membre ou seau anonyme, réponses 429 avec délai de reprise et refus 503 en cas d’indisponibilité ; voir [les politiques](anti-abus.md) |
 
 Routes : `/compte`, `/deposer`, `/mes-annonces`, `/annonces/$listingId/modifier`, `/recherche`, `/annonces/$listingId`, `/moderation`, `/mot-de-passe-oublie`, `/verification-email`, `/reinitialiser-mot-de-passe`.
@@ -23,7 +23,8 @@ Routes : `/compte`, `/deposer`, `/mes-annonces`, `/annonces/$listingId/modifier`
 - Expiration : exclusion immédiate des résultats après 60 jours, même si le statut stocké est encore actif. Le renouvellement est possible ; aucun traitement différé n’a été installé.
 - Photos : le bucket configuré permet une lecture publique des fichiers. Un retrait masque la fiche, sans retirer automatiquement les fichiers du stockage ; conservation et nettoyage sont encore à définir. Après un résultat de commit incertain, conserver les photos évite de casser une annonce qui aurait réellement été publiée : réconciliation opérationnelle encore nécessaire.
 - Édition : photos et coordonnées restent conservées ; la modification ne renouvelle pas la durée de publication. Les annonces vendues, retirées ou modérées ne sont pas modifiables.
-- Profil public vendeur, suspension administrative avec retrait de ses annonces et instrumentation des événements d’usage restent à construire.
+- Suspension : le blocage du compte précède la transaction de retrait ; si celle-ci échoue, le compte reste bloqué et l’action peut être relancée. Les autres signalements ouverts sur ses annonces restent à classer. La levée de suspension (`restore_user`) n’a pas d’écran : elle se fait dans la console Appwrite et ne remet pas les annonces en ligne.
+- Profil public vendeur et instrumentation des événements d’usage restent à construire.
 
 ## Avant ouverture aux vrais vendeurs
 
@@ -53,3 +54,7 @@ Ces essais utilisent uniquement des comptes et annonces fictifs dans Appwrite lo
 ## Préparation Cloud du 29 septembre 2026
 
 Après la recette locale, la table privée `rate_limits` a été créée dans le projet Cloud configuré, sans modifier les autres tables ni le bucket. Les cinq colonnes, l’index et le refus de lecture anonyme ont été vérifiés. Une transaction et sa limite d’incrément ont été essayées avec un compteur temporaire, supprimé après contrôle. Aucun compte ni email de recette n’a été créé dans Cloud. Le build de la PR est réussi. La PR a été fusionnée le 30 septembre 2026 et le site public sert la V1 ; voir [la mise en production](mise-en-production.md).
+
+## Suspension administrative du 6 octobre 2026
+
+La recette Appwrite locale couvre la suspension sur les vrais services : refus quand le vendeur est lui-même administrateur, puis suspension par un autre administrateur. Le compte passe au statut bloqué, sa session et sa connexion sont refusées, ses annonces passent en `removed_by_moderation`, la fiche répond 404 et le journal contient une seule entrée `suspend_user`. La clé serveur de chaque environnement doit disposer de `users.write` et `sessions.write`.

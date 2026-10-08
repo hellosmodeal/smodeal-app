@@ -29,6 +29,7 @@ import {
   listOpenReports,
   removeReportedListing,
   submitListingReport,
+  suspendReportedSeller,
 } from '@/features/moderation/moderation.server'
 import { getServerEnv } from '@/server/env.server'
 
@@ -391,6 +392,89 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
       await expect(
         account.createEmailPasswordSession({ email, password: newPassword }),
       ).resolves.toHaveProperty('userId', user.$id)
+
+      const freshSession = await account.createEmailPasswordSession({
+        email,
+        password: newPassword,
+      })
+      const freshSeller = new Account(
+        new Client()
+          .setEndpoint(env.APPWRITE_ENDPOINT)
+          .setProject(env.APPWRITE_PROJECT_ID)
+          .setSession(freshSession.secret),
+      )
+      const { id: suspendedId } = await publishListing(input, new Date(), {
+        ...deps,
+        getUser: () => freshSeller.get(),
+      })
+      await submitListingReport(
+        tables,
+        deps.databaseId,
+        actor,
+        { listingId: suspendedId, reason: 'Vendeur fictif à suspendre.' },
+        new Date(),
+      )
+      const suspensionReport = (
+        await listOpenReports(tables, deps.databaseId, admin)
+      ).reports.find((item) => item.listingId === suspendedId)
+      if (!suspensionReport)
+        throw new Error('Signalement de suspension introuvable.')
+      const users = new Users(client)
+      const suspension = {
+        reportId: suspensionReport.id,
+        reason: 'Suspension fictive pour recette.',
+      }
+      await expect(
+        suspendReportedSeller(
+          tables,
+          users,
+          deps.databaseId,
+          admin,
+          suspension,
+          new Date(),
+        ),
+      ).rejects.toThrow('administrateur')
+      expect((await users.get({ userId: user.$id })).status).toBe(true)
+      await users.updateLabels({ userId: user.$id, labels: [] })
+      await users.updateLabels({ userId: readerUser.$id, labels: ['admin'] })
+      await suspendReportedSeller(
+        tables,
+        users,
+        deps.databaseId,
+        { id: readerUser.$id, labels: ['admin'] },
+        suspension,
+        new Date(),
+      )
+      expect((await users.get({ userId: user.$id })).status).toBe(false)
+      for (const listingId of [suspendedId, keptId])
+        expect(
+          (
+            await tables.getRow({
+              databaseId: deps.databaseId,
+              tableId: 'listings',
+              rowId: listingId,
+            })
+          ).status,
+        ).toBe('removed_by_moderation')
+      const suspensionLogs = await tables.listRows({
+        databaseId: deps.databaseId,
+        tableId: 'moderation_logs',
+        queries: [Query.equal('targetId', user.$id)],
+      })
+      expect(suspensionLogs.rows).toHaveLength(1)
+      expect(suspensionLogs.rows[0]).toMatchObject({
+        action: 'suspend_user',
+        targetType: 'user',
+        adminId: readerUser.$id,
+        reason: suspension.reason,
+      })
+      await expect(freshSeller.get()).rejects.toThrow()
+      await expect(
+        account.createEmailPasswordSession({ email, password: newPassword }),
+      ).rejects.toThrow()
+      expect(
+        (await fetch(`http://localhost:18671/annonces/${keptId}`)).status,
+      ).toBe(404)
     }, 60_000)
   },
 )

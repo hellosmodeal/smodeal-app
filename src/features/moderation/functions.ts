@@ -12,8 +12,9 @@ import {
   removeReportedListing,
   reportErrorResult,
   submitListingReport,
+  suspendReportedSeller,
 } from './moderation.server'
-import { removalSchema, reportSchema } from './rules'
+import { removalSchema, reportSchema, suspensionSchema } from './rules'
 
 async function moderationContext() {
   const user = await loadCurrentUser()
@@ -58,5 +59,20 @@ export const removeListingByReport = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const { actor, db, databaseId } = await moderationContext()
     await removeReportedListing(db, databaseId, actor, data, new Date())
+    return { ok: true as const }
+  })
+
+export const suspendSellerByReport = createServerFn({ method: 'POST' })
+  .inputValidator(suspensionSchema)
+  .handler(async ({ data }) => {
+    const { actor, db, databaseId } = await moderationContext()
+    await suspendReportedSeller(
+      db,
+      adminClient().users,
+      databaseId,
+      actor,
+      data,
+      new Date(),
+    )
     return { ok: true as const }
   })

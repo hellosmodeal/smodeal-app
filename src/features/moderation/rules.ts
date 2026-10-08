@@ -17,8 +17,10 @@ export const removalSchema = z.object({
   reason,
   action: z.enum(['remove', 'dismiss']).optional(),
 })
+export const suspensionSchema = z.object({ reportId: identifier, reason })
 export type ReportInput = z.infer<typeof reportSchema>
 export type RemovalInput = z.infer<typeof removalSchema>
+export type SuspensionInput = z.infer<typeof suspensionSchema>
 export type ModerationActor = { id: string; labels: string[] }
 export type OpenReport = {
   id: string
