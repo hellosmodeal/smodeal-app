@@ -1,4 +1,10 @@
-import { AppwriteException, ID, Query, type TablesDB } from 'node-appwrite'
+import {
+  AppwriteException,
+  ID,
+  Query,
+  type TablesDB,
+  type Users,
+} from 'node-appwrite'
 import { isAdmin } from '@/features/auth/rules'
 import { isPubliclyVisible } from '@/features/listings/rules'
 import {
@@ -8,6 +14,8 @@ import {
   type ReportInput,
   removalSchema,
   reportSchema,
+  type SuspensionInput,
+  suspensionSchema,
 } from './rules'
 
 class ModerationError extends Error {}
@@ -154,6 +162,77 @@ export async function removeReportedListing(
         targetType: 'listing',
         targetId: report.listingId,
         action: data.action === 'dismiss' ? 'dismiss_report' : 'remove_listing',
+        reason: data.reason,
+      },
+      transactionId: transaction.$id,
+    })
+    await db.updateTransaction({ transactionId: transaction.$id, commit: true })
+  } catch (error) {
+    await db
+      .updateTransaction({ transactionId: transaction.$id, rollback: true })
+      .catch(() => undefined)
+    throw error
+  }
+}
+
+export async function suspendReportedSeller(
+  db: TablesDB,
+  users: Pick<Users, 'get' | 'updateStatus' | 'deleteSessions'>,
+  databaseId: string,
+  actor: ModerationActor | null,
+  input: SuspensionInput,
+  now: Date,
+): Promise<void> {
+  requireAdmin(actor)
+  const data = suspensionSchema.parse(input)
+  const transaction = await db.createTransaction({ ttl: 60 })
+  try {
+    const report = await db.getRow({
+      databaseId,
+      tableId: 'reports',
+      rowId: data.reportId,
+      transactionId: transaction.$id,
+    })
+    if (report.state !== 'open')
+      throw new ModerationError('Ce signalement est déjà traité.')
+    const listing = await db.getRow({
+      databaseId,
+      tableId: 'listings',
+      rowId: report.listingId,
+      transactionId: transaction.$id,
+    })
+    const seller = await users.get({ userId: listing.ownerId })
+    if (seller.$id === actor.id || isAdmin(seller))
+      throw new ModerationError('Impossible de suspendre un administrateur.')
+    // Le blocage précède le retrait : un nouvel essai après échec reste possible et sans effet de bord.
+    await users.updateStatus({ userId: seller.$id, status: false })
+    await users.deleteSessions({ userId: seller.$id })
+    await db.updateRows({
+      databaseId,
+      tableId: 'listings',
+      data: { status: 'removed_by_moderation' },
+      queries: [
+        Query.equal('ownerId', seller.$id),
+        Query.equal('status', ['active', 'expired']),
+      ],
+      transactionId: transaction.$id,
+    })
+    await db.updateRow({
+      databaseId,
+      tableId: 'reports',
+      rowId: report.$id,
+      data: { state: 'resolved', resolvedAt: now.toISOString() },
+      transactionId: transaction.$id,
+    })
+    await db.createRow({
+      databaseId,
+      tableId: 'moderation_logs',
+      rowId: ID.unique(),
+      data: {
+        adminId: actor.id,
+        targetType: 'user',
+        targetId: seller.$id,
+        action: 'suspend_user',
         reason: data.reason,
       },
       transactionId: transaction.$id,

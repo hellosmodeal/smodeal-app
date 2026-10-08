@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   getOpenReports,
   removeListingByReport,
+  suspendSellerByReport,
 } from '@/features/moderation/functions'
 import type { OpenReport } from '@/features/moderation/rules'
 
@@ -65,17 +66,24 @@ function ReportCard({ report }: { report: OpenReport }) {
       (event.nativeEvent as SubmitEvent).submitter,
     )
     const reason = String(form.get('reason') ?? '')
-    const action = form.get('action') === 'dismiss' ? 'dismiss' : 'remove'
+    const action = form.get('action')
     setPending(true)
     setError('')
     try {
-      await removeListingByReport({
-        data: { reportId: report.id, reason, action },
-      })
+      if (action === 'suspend')
+        await suspendSellerByReport({ data: { reportId: report.id, reason } })
+      else
+        await removeListingByReport({
+          data: {
+            reportId: report.id,
+            reason,
+            action: action === 'dismiss' ? 'dismiss' : 'remove',
+          },
+        })
       await router.invalidate()
     } catch {
       setError(
-        'Retrait impossible. Rechargez pour vérifier l’état du signalement.',
+        'Action impossible. Rechargez pour vérifier l’état du signalement.',
       )
     } finally {
       setPending(false)
@@ -96,7 +104,7 @@ function ReportCard({ report }: { report: OpenReport }) {
           htmlFor={`removal-${report.id}`}
           className="block text-sm font-medium"
         >
-          Motif du retrait (journal de modération)
+          Motif de la décision (journal de modération)
         </label>
         <textarea
           id={`removal-${report.id}`}
@@ -124,6 +132,15 @@ function ReportCard({ report }: { report: OpenReport }) {
           disabled={pending}
         >
           Classer sans retrait
+        </Button>
+        <Button
+          type="submit"
+          name="action"
+          value="suspend"
+          variant="destructive"
+          disabled={pending}
+        >
+          Suspendre le vendeur et retirer ses annonces
         </Button>
       </form>
       {error && (

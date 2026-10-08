@@ -1,10 +1,11 @@
-import { Client, TablesDB } from 'node-appwrite'
+import { Client, Query, TablesDB, Users } from 'node-appwrite'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   listOpenReports,
   removeReportedListing,
   reportErrorResult,
   submitListingReport,
+  suspendReportedSeller,
 } from './moderation.server'
 
 const now = new Date('2026-10-01T12:00:00Z')
@@ -257,5 +258,128 @@ describe('signalement et retrait administratif', () => {
       ok: false,
       message: 'Signalement impossible pour le moment.',
     })
+  })
+})
+
+describe('suspension d’un vendeur signalé', () => {
+  let db: TablesDB
+  let users: Users
+  const input = { reportId: 'report', reason: 'Escroqueries répétées' }
+  beforeEach(() => {
+    db = new TablesDB(new Client())
+    users = new Users(new Client())
+    vi.spyOn(db, 'getRow').mockImplementation((async (params: {
+      tableId: string
+    }) =>
+      params.tableId === 'reports'
+        ? { $id: 'report', listingId: 'listing', state: 'open' }
+        : listing) as never)
+    vi.spyOn(db, 'createRow').mockResolvedValue({} as never)
+    vi.spyOn(db, 'updateRow').mockResolvedValue({} as never)
+    vi.spyOn(db, 'updateRows').mockResolvedValue({} as never)
+    vi.spyOn(db, 'createTransaction').mockResolvedValue({
+      $id: 'transaction',
+    } as never)
+    vi.spyOn(db, 'updateTransaction').mockResolvedValue({} as never)
+    vi.spyOn(users, 'get').mockResolvedValue({
+      $id: 'seller',
+      labels: [],
+    } as never)
+    vi.spyOn(users, 'updateStatus').mockResolvedValue({} as never)
+    vi.spyOn(users, 'deleteSessions').mockResolvedValue({} as never)
+  })
+
+  it('refuse la suspension par un membre sans rôle administrateur', async () => {
+    await expect(
+      suspendReportedSeller(db, users, 'smodeal', seller, input, now),
+    ).rejects.toThrow('administrateurs')
+    expect(db.getRow).not.toHaveBeenCalled()
+    expect(users.updateStatus).not.toHaveBeenCalled()
+  })
+
+  it('bloque le vendeur, ferme ses sessions et retire ses annonces avec journal', async () => {
+    await suspendReportedSeller(db, users, 'smodeal', admin, input, now)
+    expect(users.updateStatus).toHaveBeenCalledWith({
+      userId: 'seller',
+      status: false,
+    })
+    expect(users.deleteSessions).toHaveBeenCalledWith({ userId: 'seller' })
+    expect(db.updateRows).toHaveBeenCalledWith({
+      databaseId: 'smodeal',
+      tableId: 'listings',
+      data: { status: 'removed_by_moderation' },
+      queries: [
+        Query.equal('ownerId', 'seller'),
+        Query.equal('status', ['active', 'expired']),
+      ],
+      transactionId: 'transaction',
+    })
+    expect(db.updateRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'reports',
+        rowId: 'report',
+        data: { state: 'resolved', resolvedAt: now.toISOString() },
+        transactionId: 'transaction',
+      }),
+    )
+    expect(db.createRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'moderation_logs',
+        data: {
+          adminId: 'admin',
+          targetType: 'user',
+          targetId: 'seller',
+          action: 'suspend_user',
+          reason: 'Escroqueries répétées',
+        },
+        transactionId: 'transaction',
+      }),
+    )
+    expect(db.updateTransaction).toHaveBeenCalledWith({
+      transactionId: 'transaction',
+      commit: true,
+    })
+  })
+
+  it('refuse de suspendre un administrateur', async () => {
+    vi.mocked(users.get).mockResolvedValue({
+      $id: 'seller',
+      labels: ['admin'],
+    } as never)
+    await expect(
+      suspendReportedSeller(db, users, 'smodeal', admin, input, now),
+    ).rejects.toThrow('administrateur')
+    expect(users.updateStatus).not.toHaveBeenCalled()
+    expect(db.updateRows).not.toHaveBeenCalled()
+    expect(db.updateTransaction).toHaveBeenCalledWith({
+      transactionId: 'transaction',
+      rollback: true,
+    })
+  })
+
+  it('ne suspend personne pour un signalement déjà traité', async () => {
+    vi.mocked(db.getRow).mockResolvedValue({
+      $id: 'report',
+      listingId: 'listing',
+      state: 'dismissed',
+    } as never)
+    await expect(
+      suspendReportedSeller(db, users, 'smodeal', admin, input, now),
+    ).rejects.toThrow('déjà traité')
+    expect(users.updateStatus).not.toHaveBeenCalled()
+  })
+
+  it('annule le retrait des annonces si le journal échoue', async () => {
+    vi.mocked(db.createRow).mockRejectedValue(new Error('service indisponible'))
+    await expect(
+      suspendReportedSeller(db, users, 'smodeal', admin, input, now),
+    ).rejects.toThrow('service indisponible')
+    expect(db.updateTransaction).toHaveBeenCalledWith({
+      transactionId: 'transaction',
+      rollback: true,
+    })
+    expect(db.updateTransaction).not.toHaveBeenCalledWith(
+      expect.objectContaining({ commit: true }),
+    )
   })
 })
