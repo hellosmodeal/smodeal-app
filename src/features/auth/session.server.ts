@@ -8,6 +8,7 @@ import type { Account, Models } from 'node-appwrite'
 import { AppwriteException } from 'node-appwrite'
 import {
   createAdminClient,
+  createGuestAccount,
   createSessionClient,
 } from '@/server/appwrite.server'
 import { getServerEnv } from '@/server/env.server'
@@ -23,6 +24,10 @@ function userAgent() {
 
 export function adminClient() {
   return createAdminClient(userAgent())
+}
+
+export function guestAccount() {
+  return createGuestAccount(userAgent())
 }
 
 export function persistSession(session: Models.Session) {
@@ -42,6 +47,10 @@ export function clearSession() {
 export function sessionClient() {
   const secret = getCookie(cookieName())
   return secret ? createSessionClient(secret, userAgent()) : null
+}
+
+export function sessionAccountFor(secret: string) {
+  return createSessionClient(secret, userAgent()).account
 }
 
 export async function loadCurrentUser(

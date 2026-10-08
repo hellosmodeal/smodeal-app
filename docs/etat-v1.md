@@ -58,3 +58,20 @@ Après la recette locale, la table privée `rate_limits` a été créée dans le
 ## Suspension administrative du 6 octobre 2026
 
 La recette Appwrite locale couvre la suspension sur les vrais services : refus quand le vendeur est lui-même administrateur, puis suspension par un autre administrateur. Le compte passe au statut bloqué, sa session et sa connexion sont refusées, ses annonces passent en `removed_by_moderation`, la fiche répond 404 et le journal contient une seule entrée `suspend_user`. La clé serveur de chaque environnement doit disposer de `users.write` et `sessions.write`.
+
+## Passe UX MVP du 8 octobre 2026 (branche `feat/mvp-ux-pass`, non fusionnée)
+
+Implémenté et testé localement, pas encore déployé :
+
+- Socle : écrans 404, erreur et chargement ; en-tête avec dépôt, annonces du vendeur et modération pour les administrateurs ; pied de page avec liens légaux ; boutons, champs et listes déroulantes harmonisés.
+- Pages `/mentions-legales`, `/cgu`, `/confidentialite`, `/cookies` : structure prête, champs marqués « À compléter » et `noindex` tant qu’ils le restent. Les textes doivent être fournis et validés par le responsable du projet.
+- `/robots.txt` et `/sitemap.xml` : le sitemap ne liste que les annonces actives non expirées et répond 404 hors domaine canonique indexable. Le site entier reste `noindex` : l’indexation est une décision à prendre avant de soumettre le sitemap.
+- Découverte : carte d’annonce partagée, accueil réutilisant la recherche, catégories en liens, fenêtre de pagination, effacement des filtres, numéro affiché par paires.
+- Vendeur : messages de validation en français, prix accepté avec espaces de milliers, confirmation avant « Vendu » et « Retirer », bandeaux de succès après dépôt et modification, dépôt bloqué avec explication tant que l’email n’est pas vérifié.
+- Fiche : actions du propriétaire calculées côté serveur sans exposer l’identifiant du vendeur, partage, galerie, signalement guidé avec erreur sur le champ.
+- Compte : email de vérification envoyé à l’inscription (échec non bloquant), redirection conservée entre connexion et inscription.
+- Correctif : la confirmation du lien de vérification utilisait la clé API, refusée par Appwrite (scope `public` manquant) ; elle passe désormais par un client invité. La recette locale vérifie les deux comportements. Ce défaut existait avant la passe et touche aussi la production.
+
+Recette navigateur par agents sur Appwrite local, en largeur ordinateur et téléphone : parcours vendeur, acheteur et modération réussis, sauf la vérification d’email. Celle-ci a été corrigée ensuite et validée par la recette Appwrite locale, pas encore rejouée dans le navigateur.
+
+Restent hors de cette passe : profil public vendeur, modification du compte (pseudonyme, téléphone, accord), indicateurs d’usage, suppression de compte, écran de levée de suspension, purge des photos orphelines, case d’acceptation des CGU à l’inscription, noms de départements.

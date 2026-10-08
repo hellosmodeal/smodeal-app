@@ -1,7 +1,9 @@
 import { useServerFn } from '@tanstack/react-start'
+import { Phone } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { revealPhone } from '../functions'
+import { formatPhoneForDisplay } from '../rules'
 
 export function RevealPhoneButton({ listingId }: { listingId: string }) {
   const reveal = useServerFn(revealPhone)
@@ -27,22 +29,31 @@ export function RevealPhoneButton({ listingId }: { listingId: string }) {
 
   if (phone) {
     return (
-      <p className="rounded-lg border border-brand py-3 px-4 font-semibold bg-brand-surface text-brand-dark">
-        {phone}
-      </p>
+      <a
+        href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+        className={buttonVariants({ size: 'lg', className: 'w-full' })}
+      >
+        <Phone aria-hidden="true" />
+        Appeler le {formatPhoneForDisplay(phone)}
+      </a>
     )
   }
 
   return (
     <div className="space-y-2">
-      <Button disabled={pending} onClick={() => void handleReveal()}>
-        {pending ? 'Chargement…' : 'Voir le numéro de téléphone'}
+      <Button
+        size="lg"
+        className="w-full"
+        disabled={pending}
+        aria-busy={pending}
+        onClick={() => void handleReveal()}
+      >
+        <Phone aria-hidden="true" />
+        {pending ? 'Affichage du numéro…' : 'Voir le numéro de téléphone'}
       </Button>
-      {message && (
-        <p role="status" className="text-sm text-muted-foreground">
-          {message}
-        </p>
-      )}
+      <p role="status" className="text-sm text-muted-foreground empty:hidden">
+        {message}
+      </p>
     </div>
   )
 }

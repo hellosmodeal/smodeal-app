@@ -9,12 +9,18 @@ import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
 import {
   listOpenReports,
+  moderationActionResult,
   removeReportedListing,
   reportErrorResult,
   submitListingReport,
   suspendReportedSeller,
 } from './moderation.server'
-import { removalSchema, reportSchema, suspensionSchema } from './rules'
+import {
+  type ModerationActionResult,
+  removalSchema,
+  reportSchema,
+  suspensionSchema,
+} from './rules'
 
 async function moderationContext() {
   const user = await loadCurrentUser()
@@ -51,28 +57,38 @@ export const getOpenReports = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ after: z.string().max(36).optional() }))
   .handler(async ({ data }) => {
     const { actor, db, databaseId } = await moderationContext()
-    return listOpenReports(db, databaseId, actor, data.after)
+    return listOpenReports(db, databaseId, actor, data.after, new Date())
   })
 
 export const removeListingByReport = createServerFn({ method: 'POST' })
   .inputValidator(removalSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<ModerationActionResult> => {
     const { actor, db, databaseId } = await moderationContext()
-    await removeReportedListing(db, databaseId, actor, data, new Date())
-    return { ok: true as const }
+    try {
+      await removeReportedListing(db, databaseId, actor, data, new Date())
+      return { ok: true }
+    } catch (error) {
+      if (error instanceof Response) throw error
+      return moderationActionResult(error)
+    }
   })
 
 export const suspendSellerByReport = createServerFn({ method: 'POST' })
   .inputValidator(suspensionSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<ModerationActionResult> => {
     const { actor, db, databaseId } = await moderationContext()
-    await suspendReportedSeller(
-      db,
-      adminClient().users,
-      databaseId,
-      actor,
-      data,
-      new Date(),
-    )
-    return { ok: true as const }
+    try {
+      await suspendReportedSeller(
+        db,
+        adminClient().users,
+        databaseId,
+        actor,
+        data,
+        new Date(),
+      )
+      return { ok: true }
+    } catch (error) {
+      if (error instanceof Response) throw error
+      return moderationActionResult(error)
+    }
   })

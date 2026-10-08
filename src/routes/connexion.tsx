@@ -1,60 +1,71 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
-import { z } from 'zod'
 import { AuthForm } from '@/features/auth/components/auth-form'
 import { signIn } from '@/features/auth/functions'
-import { isSafeInternalPath } from '@/features/auth/rules'
+import { authRedirectSearchSchema, signInSchema } from '@/features/auth/rules'
 
 export const Route = createFileRoute('/connexion')({
-  validateSearch: z.object({ redirect: z.string().optional() }),
+  validateSearch: authRedirectSearchSchema,
   head: () => ({ meta: [{ title: 'Connexion — Smodeal' }] }),
   component: SignInPage,
 })
 
 function SignInPage() {
   const router = useRouter()
-  const search = Route.useSearch()
+  const { redirect } = Route.useSearch()
   const signInFn = useServerFn(signIn)
 
   return (
-    <div className="space-y-4">
-      <AuthForm
-        title="Connexion"
-        description="Accédez à votre espace vendeur."
-        submitLabel="Se connecter"
-        fields={[
-          {
-            name: 'email',
-            label: 'Email',
-            type: 'email',
-            autoComplete: 'email',
-          },
-          {
-            name: 'password',
-            label: 'Mot de passe',
-            type: 'password',
-            autoComplete: 'current-password',
-          },
-        ]}
-        onSubmit={async (values) => {
-          const result = await signInFn({
-            data: { email: values.email, password: values.password },
-          })
-          if (result.ok) {
-            await router.invalidate()
-            const target = isSafeInternalPath(search.redirect)
-              ? search.redirect
-              : '/compte'
-            await router.navigate({ href: target })
-          }
-          return result
-        }}
-      />
-      <p className="max-w-sm mx-auto text-sm text-muted-foreground">
-        <Link to="/mot-de-passe-oublie" className="underline text-primary">
-          Mot de passe oublié ?
-        </Link>
-      </p>
-    </div>
+    <AuthForm
+      title="Connexion"
+      description="Accédez à votre espace vendeur."
+      submitLabel="Se connecter"
+      pendingLabel="Connexion…"
+      schema={signInSchema}
+      fields={[
+        {
+          name: 'email',
+          label: 'Email',
+          type: 'email',
+          autoComplete: 'email',
+        },
+        {
+          name: 'password',
+          label: 'Mot de passe',
+          type: 'password',
+          autoComplete: 'current-password',
+          minLength: 8,
+          maxLength: 256,
+        },
+      ]}
+      onSubmit={async (values) => {
+        const result = await signInFn({
+          data: { email: values.email, password: values.password },
+        })
+        if (result.ok) {
+          await router.invalidate()
+          await router.navigate({ href: redirect ?? '/compte' })
+        }
+        return result
+      }}
+    >
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>
+          <Link to="/mot-de-passe-oublie" className="underline text-primary">
+            Mot de passe oublié ?
+          </Link>
+        </p>
+        <p>
+          Pas encore de compte ?{' '}
+          <Link
+            to="/inscription"
+            search={{ redirect }}
+            className="font-medium underline text-primary"
+          >
+            Créer un compte
+          </Link>
+        </p>
+      </div>
+    </AuthForm>
   )
 }

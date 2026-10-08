@@ -1,14 +1,25 @@
 import { Link } from '@tanstack/react-router'
 import { SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
-import { type SearchCriteria, searchCategories, sortOptions } from '../rules'
+import {
+  clearFilters,
+  type SearchCriteria,
+  searchCategories,
+  sortOptions,
+} from '../rules'
 import { useSearchSubmit } from './use-search-submit'
 
 const FILTERS_FORM_ID = 'filtres-recherche'
 
 const fieldClass =
-  'min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-brand'
+  'min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+
+// NativeSelect styles its <select> at h-8; filters use 44px touch targets.
+const selectClass = 'w-full rounded-lg bg-card [&>select]:h-11'
 
 function criteriaKey(criteria: SearchCriteria) {
   return JSON.stringify(criteria)
@@ -26,16 +37,18 @@ export function SearchFilters({
 
   return (
     <aside aria-labelledby="filtres-titre">
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="lg"
         aria-expanded={open}
         aria-controls={FILTERS_FORM_ID}
         onClick={() => setOpen((current) => !current)}
-        className="flex gap-2 items-center justify-center w-full min-h-11 rounded-lg border border-border text-sm font-semibold bg-card lg:hidden"
+        className="w-full text-sm font-semibold lg:hidden"
       >
-        <SlidersHorizontal aria-hidden="true" className="size-4" />
+        <SlidersHorizontal aria-hidden="true" />
         {open ? 'Masquer les filtres' : 'Afficher les filtres'}
-      </button>
+      </Button>
       <form
         key={criteriaKey(criteria)}
         id={FILTERS_FORM_ID}
@@ -55,40 +68,44 @@ export function SearchFilters({
           <input type="hidden" name="lieu" value={criteria.lieu} />
         )}
         <div className="space-y-2">
-          <label htmlFor="filtre-categorie" className="text-sm font-semibold">
+          <Label htmlFor="filtre-categorie" className="font-semibold">
             Catégorie
-          </label>
-          <select
+          </Label>
+          <NativeSelect
             id="filtre-categorie"
             name="categorie"
             defaultValue={criteria.categorie ?? ''}
-            className={fieldClass}
+            className={selectClass}
           >
-            <option value="">Toutes les catégories</option>
+            <NativeSelectOption value="">
+              Toutes les catégories
+            </NativeSelectOption>
             {searchCategories.map((category) => (
-              <option key={category.slug} value={category.slug}>
+              <NativeSelectOption key={category.slug} value={category.slug}>
                 {category.label}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
-          <label htmlFor="filtre-departement" className="text-sm font-semibold">
+          <Label htmlFor="filtre-departement" className="font-semibold">
             Département
-          </label>
-          <select
+          </Label>
+          <NativeSelect
             id="filtre-departement"
             name="departement"
             defaultValue={criteria.departement ?? ''}
-            className={fieldClass}
+            className={selectClass}
           >
-            <option value="">Tous les départements</option>
+            <NativeSelectOption value="">
+              Tous les départements
+            </NativeSelectOption>
             {departments.map((department) => (
-              <option key={department.code} value={department.code}>
+              <NativeSelectOption key={department.code} value={department.code}>
                 {department.name} ({department.code})
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <PriceField
           id="filtre-prix-min"
@@ -105,16 +122,18 @@ export function SearchFilters({
           value={criteria.prixMax}
         />
         <div className="grid gap-2">
-          <button
-            type="submit"
-            className="min-h-11 rounded-lg font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
-          >
+          <Button type="submit" size="lg" className="text-sm font-semibold">
             Appliquer les filtres
-          </button>
+          </Button>
           <Link
+            activeOptions={{ exact: true }}
             to="/recherche"
-            search={{ q: criteria.q, lieu: criteria.lieu }}
-            className="flex items-center justify-center min-h-11 rounded-lg border border-brand text-sm font-semibold text-brand-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:bg-accent"
+            search={clearFilters(criteria)}
+            className={buttonVariants({
+              variant: 'outline',
+              size: 'lg',
+              className: 'text-sm font-semibold',
+            })}
           >
             Réinitialiser
           </Link>
@@ -139,9 +158,9 @@ function PriceField({
 }) {
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="text-sm font-semibold">
+      <Label htmlFor={id} className="font-semibold">
         {label}
-      </label>
+      </Label>
       <div className="relative">
         <input
           id={id}
@@ -168,24 +187,24 @@ function PriceField({
 export function SortSelect({ criteria }: { criteria: SearchCriteria }) {
   return (
     <div>
-      <label htmlFor="tri-annonces" className="sr-only">
+      <Label htmlFor="tri-annonces" className="sr-only">
         Trier les annonces
-      </label>
-      <select
+      </Label>
+      <NativeSelect
         key={criteria.tri ?? 'recent'}
         id="tri-annonces"
         name="tri"
         form={FILTERS_FORM_ID}
         defaultValue={criteria.tri ?? 'recent'}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
-        className="min-h-11 rounded-lg border border-border outline-brand px-3 text-sm bg-card"
+        className="rounded-lg bg-card [&>select]:h-11"
       >
         {sortOptions.map((option) => (
-          <option key={option.value} value={option.value}>
+          <NativeSelectOption key={option.value} value={option.value}>
             {option.label}
-          </option>
+          </NativeSelectOption>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   )
 }

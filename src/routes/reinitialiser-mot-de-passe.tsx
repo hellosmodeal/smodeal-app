@@ -21,11 +21,5 @@ export const Route = createFileRoute('/reinitialiser-mot-de-passe')({
 function ResetPasswordPage() {
   const { secret, userId } = Route.useSearch()
 
-  if (!userId || !secret) {
-    return (
-      <p role="alert">Ce lien de réinitialisation est incomplet ou invalide.</p>
-    )
-  }
-
   return <ResetPasswordForm userId={userId} secret={secret} />
 }

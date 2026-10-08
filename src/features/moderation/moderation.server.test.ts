@@ -2,6 +2,7 @@ import { Client, Query, TablesDB, Users } from 'node-appwrite'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   listOpenReports,
+  moderationActionResult,
   removeReportedListing,
   reportErrorResult,
   submitListingReport,
@@ -233,16 +234,32 @@ describe('signalement et retrait administratif', () => {
     expect(list).not.toHaveBeenCalled()
   })
 
-  it('pagine les signalements sans exposer l’identifiant du déclarant', async () => {
+  it('pagine les signalements avec l’annonce concernée sans exposer le déclarant', async () => {
     const rows = Array.from({ length: 26 }, (_, i) => ({
       $id: `report-${i}`,
-      listingId: 'listing',
+      listingId: i === 1 ? 'listing-retiree' : 'listing',
       reason: 'Annonce trompeuse',
       $createdAt: now.toISOString(),
       reporterId: 'private-user',
     }))
-    vi.spyOn(db, 'listRows').mockResolvedValue({ rows, total: 26 } as never)
-    const result = await listOpenReports(db, 'smodeal', admin)
+    vi.spyOn(db, 'listRows').mockImplementation((async (params: {
+      tableId: string
+    }) =>
+      params.tableId === 'reports'
+        ? { rows, total: 26 }
+        : {
+            rows: [
+              { ...listing, title: 'Vélo de ville' },
+              {
+                ...listing,
+                $id: 'listing-retiree',
+                title: 'Console de jeux',
+                status: 'removed_by_moderation',
+              },
+            ],
+            total: 2,
+          }) as never)
+    const result = await listOpenReports(db, 'smodeal', admin, undefined, now)
     expect(result.reports).toHaveLength(25)
     expect(result.hasMore).toBe(true)
     expect(result.reports[0]).toEqual({
@@ -250,6 +267,63 @@ describe('signalement et retrait administratif', () => {
       listingId: 'listing',
       reason: 'Annonce trompeuse',
       createdAt: now.toISOString(),
+      listing: {
+        title: 'Vélo de ville',
+        status: 'active',
+        publiclyVisible: true,
+      },
+    })
+    expect(result.reports[1].listing).toEqual({
+      title: 'Console de jeux',
+      status: 'removed_by_moderation',
+      publiclyVisible: false,
+    })
+    expect(db.listRows).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'listings',
+        queries: expect.arrayContaining([
+          Query.equal('$id', ['listing', 'listing-retiree']),
+        ]),
+      }),
+    )
+  })
+
+  it('signale une annonce supprimée sans casser la liste', async () => {
+    vi.spyOn(db, 'listRows').mockImplementation((async (params: {
+      tableId: string
+    }) =>
+      params.tableId === 'reports'
+        ? {
+            rows: [
+              {
+                $id: 'report',
+                listingId: 'disparue',
+                reason: 'Annonce trompeuse',
+                $createdAt: now.toISOString(),
+              },
+            ],
+            total: 1,
+          }
+        : { rows: [], total: 0 }) as never)
+    const result = await listOpenReports(db, 'smodeal', admin, undefined, now)
+    expect(result.reports[0].listing).toBeNull()
+  })
+
+  it('ne lit aucune annonce quand il n’y a aucun signalement', async () => {
+    const list = vi
+      .spyOn(db, 'listRows')
+      .mockResolvedValue({ rows: [], total: 0 } as never)
+    const result = await listOpenReports(db, 'smodeal', admin, undefined, now)
+    expect(result).toEqual({ reports: [], hasMore: false })
+    expect(list).toHaveBeenCalledTimes(1)
+  })
+
+  it('traduit une erreur de modération en résultat affichable', () => {
+    expect(moderationActionResult(new Error('secret interne'))).toEqual({
+      ok: false,
+      code: 'unavailable',
+      message:
+        'Action impossible. Rechargez pour vérifier l’état du signalement.',
     })
   })
 
@@ -346,15 +420,59 @@ describe('suspension d’un vendeur signalé', () => {
       $id: 'seller',
       labels: ['admin'],
     } as never)
-    await expect(
-      suspendReportedSeller(db, users, 'smodeal', admin, input, now),
-    ).rejects.toThrow('administrateur')
+    const failure = suspendReportedSeller(
+      db,
+      users,
+      'smodeal',
+      admin,
+      input,
+      now,
+    )
+    await expect(failure).rejects.toThrow(
+      'Un administrateur ne peut pas être suspendu.',
+    )
+    expect(moderationActionResult(await failure.catch((e) => e))).toEqual({
+      ok: false,
+      code: 'admin_suspension',
+      message: 'Un administrateur ne peut pas être suspendu.',
+    })
     expect(users.updateStatus).not.toHaveBeenCalled()
     expect(db.updateRows).not.toHaveBeenCalled()
     expect(db.updateTransaction).toHaveBeenCalledWith({
       transactionId: 'transaction',
       rollback: true,
     })
+  })
+
+  it('refuse qu’un administrateur se suspende lui-même', async () => {
+    vi.mocked(db.getRow).mockImplementation((async (params: {
+      tableId: string
+    }) =>
+      params.tableId === 'reports'
+        ? { $id: 'report', listingId: 'listing', state: 'open' }
+        : { ...listing, ownerId: 'admin' }) as never)
+    vi.mocked(users.get).mockResolvedValue({
+      $id: 'admin',
+      labels: ['admin'],
+    } as never)
+    const failure = suspendReportedSeller(
+      db,
+      users,
+      'smodeal',
+      admin,
+      input,
+      now,
+    )
+    await expect(failure).rejects.toThrow(
+      'Vous ne pouvez pas vous suspendre vous-même.',
+    )
+    expect(moderationActionResult(await failure.catch((e) => e))).toEqual({
+      ok: false,
+      code: 'self_suspension',
+      message: 'Vous ne pouvez pas vous suspendre vous-même.',
+    })
+    expect(users.updateStatus).not.toHaveBeenCalled()
+    expect(db.updateRows).not.toHaveBeenCalled()
   })
 
   it('ne suspend personne pour un signalement déjà traité', async () => {

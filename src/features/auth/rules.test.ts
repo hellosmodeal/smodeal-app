@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  authFieldErrors,
+  authRedirectSearchSchema,
   callbackUrl,
   isActiveUser,
   isAdmin,
   isSafeInternalPath,
+  safeRedirect,
   sessionCookieName,
   sessionCookieOptions,
+  signInSchema,
+  signUpSchema,
 } from './rules'
 
 describe('sessionCookieName', () => {
@@ -84,5 +89,67 @@ describe('isSafeInternalPath', () => {
     expect(isSafeInternalPath('/%0d%0aLocation:%20https://exemple.fr')).toBe(
       false,
     )
+  })
+})
+
+describe('safeRedirect', () => {
+  it('conserve un chemin interne', () => {
+    expect(safeRedirect('/annonces/abc?x=1')).toBe('/annonces/abc?x=1')
+  })
+
+  it('ignore une redirection externe ou absente', () => {
+    expect(safeRedirect('https://exemple.fr')).toBeUndefined()
+    expect(safeRedirect('//exemple.fr')).toBeUndefined()
+    expect(safeRedirect(undefined)).toBeUndefined()
+  })
+})
+
+describe('authRedirectSearchSchema', () => {
+  it('accepte une redirection interne', () => {
+    expect(authRedirectSearchSchema.parse({ redirect: '/deposer' })).toEqual({
+      redirect: '/deposer',
+    })
+  })
+
+  it('écarte une redirection externe ou mal formée sans échouer', () => {
+    expect(
+      authRedirectSearchSchema.parse({ redirect: 'https://exemple.fr' }),
+    ).toEqual({ redirect: undefined })
+    expect(authRedirectSearchSchema.parse({ redirect: 42 })).toEqual({
+      redirect: undefined,
+    })
+  })
+})
+
+describe('authFieldErrors', () => {
+  it('explique chaque champ d’inscription invalide en français', () => {
+    expect(
+      authFieldErrors(signUpSchema, {
+        name: ' a ',
+        email: 'pas-un-email',
+        password: 'court',
+      }),
+    ).toEqual({
+      name: 'Le pseudonyme doit contenir au moins 2 caractères.',
+      email: 'Saisissez une adresse email valide.',
+      password: 'Le mot de passe doit contenir au moins 8 caractères.',
+    })
+  })
+
+  it('ne signale rien pour une inscription valide', () => {
+    expect(
+      authFieldErrors(signUpSchema, {
+        name: 'Camille',
+        email: 'camille@example.test',
+        password: 'mot-de-passe-solide',
+      }),
+    ).toEqual({})
+  })
+
+  it('demande les champs vides de connexion', () => {
+    expect(authFieldErrors(signInSchema, { email: '', password: '' })).toEqual({
+      email: 'Saisissez une adresse email valide.',
+      password: 'Le mot de passe doit contenir au moins 8 caractères.',
+    })
   })
 })

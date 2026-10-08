@@ -14,7 +14,8 @@ Scope: JS, TS, JSON and CSS files. Biome replaces ESLint and Prettier; do not re
 - The pre-commit hook runs `biome check --write` on staged files and restages them.
 - Only `src/routeTree.gen.ts` (generated) is excluded, plus gitignored paths via VCS integration.
   Keep ignores narrow; never exclude source to silence findings.
-- `noLabelWithoutControl` is off for `src/components/ui/**` only: the shadcn `Label` primitive receives
-  `htmlFor` through props. Any other exception is a local `// biome-ignore <rule>: <reason>`.
+- For generated shadcn files in `src/components/ui/**` only: `noLabelWithoutControl` (the `Label` primitive
+  receives `htmlFor` through props), `useSemanticElements`, `noArrayIndexKey` and `noDoubleEquals` are off,
+  so regenerated components stay untouched. Any other exception is a local `// biome-ignore <rule>: <reason>`.
 - Biome does not format Markdown: docs keep their hand-written layout.
 - Do not mix a wholesale reformat with a feature change.

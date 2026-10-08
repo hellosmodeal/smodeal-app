@@ -160,12 +160,10 @@ export function describeResults(
   criteria: SearchCriteria,
   total: number,
 ): { title: string; count: string } {
-  const category = searchCategories.find(
-    (item) => item.slug === criteria.categorie,
-  )
+  const category = criteria.categorie && categoryLabel(criteria.categorie)
   const subject = criteria.q
     ? `« ${criteria.q} »`
-    : (category?.label ?? (criteria.lieu ? 'Annonces' : 'Toutes les annonces'))
+    : category || (criteria.lieu ? 'Annonces' : 'Toutes les annonces')
 
   return {
     title: criteria.lieu ? `${subject} à ${criteria.lieu}` : subject,
@@ -208,4 +206,45 @@ export function formatPublishedAgo(publishedAt: string, now: Date): string {
   if (hours < 24) return `Il y a ${hours} h`
   const days = Math.floor(hours / 24)
   return days === 1 ? 'Hier' : `Il y a ${days} jours`
+}
+
+export function categoryLabel(slug: string): string | undefined {
+  return searchCategories.find((category) => category.slug === slug)?.label
+}
+
+export function clearFilters(
+  criteria: SearchCriteria,
+): Pick<SearchCriteria, 'q' | 'lieu'> {
+  return parseSearchCriteria({ q: criteria.q, lieu: criteria.lieu })
+}
+
+export function hasFilters(criteria: SearchCriteria): boolean {
+  return (
+    criteria.categorie !== undefined ||
+    criteria.departement !== undefined ||
+    criteria.prixMin !== undefined ||
+    criteria.prixMax !== undefined
+  )
+}
+
+export type PaginationItem = number | 'ellipsis'
+
+export function buildPaginationWindow(
+  page: number,
+  pageCount: number,
+): PaginationItem[] {
+  const shown = new Set([1, pageCount, page - 1, page, page + 1])
+  // A gap of a single page shows that page: an ellipsis would take as much room.
+  if (shown.has(3)) shown.add(2)
+  if (shown.has(pageCount - 2)) shown.add(pageCount - 1)
+
+  const pages = [...shown]
+    .filter((target) => target >= 1 && target <= pageCount)
+    .sort((a, b) => a - b)
+
+  return pages.flatMap((target, index): PaginationItem[] =>
+    index > 0 && target - pages[index - 1] > 1
+      ? ['ellipsis', target]
+      : [target],
+  )
 }

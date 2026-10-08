@@ -1,8 +1,9 @@
 import { MapPin, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { SearchCriteria } from '../rules'
 import { useSearchSubmit } from './use-search-submit'
 
-export function SearchBar({ criteria }: { criteria: SearchCriteria }) {
+export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
   const handleSubmit = useSearchSubmit()
 
   return (
@@ -46,12 +47,9 @@ export function SearchBar({ criteria }: { criteria: SearchCriteria }) {
         {criteria.categorie && (
           <input type="hidden" name="categorie" value={criteria.categorie} />
         )}
-        <button
-          type="submit"
-          className="min-h-12 rounded-lg px-10 font-semibold bg-brand-dark text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand hover:brightness-90"
-        >
+        <Button type="submit" size="lg" className="h-12 px-10 font-semibold">
           Rechercher
-        </button>
+        </Button>
       </form>
     </search>
   )

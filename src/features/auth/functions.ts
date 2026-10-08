@@ -15,17 +15,24 @@ import {
   appwriteErrorCode,
   completeEmailVerification,
   completePasswordRecovery,
-  createAccountAndSession,
   createEmailPasswordSession,
+  registerAndSendVerification,
   requestPasswordRecovery,
   sendEmailVerification,
 } from './auth.server'
-import { isAdmin } from './rules'
+import {
+  isAdmin,
+  recoveryRequestSchema,
+  signInSchema,
+  signUpSchema,
+} from './rules'
 import {
   adminClient,
   clearSession,
+  guestAccount,
   loadCurrentUser,
   persistSession,
+  sessionAccountFor,
   sessionClient,
 } from './session.server'
 
@@ -37,20 +44,17 @@ export type CurrentUser = {
   isAdmin: boolean
 }
 
-export type AuthResult = { ok: true } | { ok: false; message: string }
+export type AuthResult =
+  | { ok: true }
+  | { ok: false; message: string; invalidLink?: boolean }
+
+export type SignUpResult =
+  | { ok: true; verificationSent: boolean }
+  | { ok: false; message: string }
 
 export type RecoveryRequestResult =
   | { ok: true; message: string }
   | { ok: false; message: string }
-
-const credentialsSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8).max(256),
-})
-
-const signUpSchema = credentialsSchema.extend({
-  name: z.string().trim().min(2).max(40),
-})
 
 const tokenSchema = z.object({
   userId: z.string().min(1).max(36),
@@ -61,9 +65,9 @@ const resetPasswordSchema = tokenSchema.extend({
   password: z.string().min(8).max(256),
 })
 
-const recoverySchema = z.object({ email: z.email() })
+type AuthFailure = { ok: false; message: string }
 
-function toAuthError(error: unknown, fallback: string): AuthResult {
+function toAuthError(error: unknown, fallback: string): AuthFailure {
   if (
     error instanceof RateLimitError ||
     error instanceof RateLimitUnavailableError
@@ -92,6 +96,7 @@ function toTokenError(error: unknown): AuthResult {
   return {
     ok: false,
     message: 'Ce lien est invalide ou expiré. Demandez-en un nouveau.',
+    invalidLink: true,
   }
 }
 
@@ -110,7 +115,7 @@ export const getCurrentUser = createServerFn({ method: 'GET' }).handler(
 )
 
 export const signIn = createServerFn({ method: 'POST' })
-  .inputValidator(credentialsSchema)
+  .inputValidator(signInSchema)
   .handler(async ({ data }): Promise<AuthResult> => {
     try {
       await limitAnonymousAction('auth_signin', data.email)
@@ -128,12 +133,17 @@ export const signIn = createServerFn({ method: 'POST' })
 
 export const signUp = createServerFn({ method: 'POST' })
   .inputValidator(signUpSchema)
-  .handler(async ({ data }): Promise<AuthResult> => {
+  .handler(async ({ data }): Promise<SignUpResult> => {
     try {
       await limitAnonymousAction('auth_signup', data.email)
-      const session = await createAccountAndSession(adminClient().account, data)
+      const { session, verificationSent } = await registerAndSendVerification(
+        adminClient().account,
+        sessionAccountFor,
+        data,
+        getServerEnv().PUBLIC_SITE_URL,
+      )
       persistSession(session)
-      return { ok: true }
+      return { ok: true, verificationSent }
     } catch (error) {
       if (error instanceof Response) throw error
       return toAuthError(error, 'Inscription impossible pour le moment.')
@@ -180,11 +190,7 @@ export const verifyEmail = createServerFn({ method: 'POST' })
         'auth_email_verification',
         requestTokenSubject(data.userId),
       )
-      await completeEmailVerification(
-        adminClient().account,
-        data.userId,
-        data.secret,
-      )
+      await completeEmailVerification(guestAccount(), data.userId, data.secret)
       return { ok: true }
     } catch (error) {
       if (error instanceof Response) throw error
@@ -193,7 +199,7 @@ export const verifyEmail = createServerFn({ method: 'POST' })
   })
 
 export const requestPasswordReset = createServerFn({ method: 'POST' })
-  .inputValidator(recoverySchema)
+  .inputValidator(recoveryRequestSchema)
   .handler(async ({ data }): Promise<RecoveryRequestResult> => {
     try {
       await limitAnonymousAction('auth_password_recovery', data.email)

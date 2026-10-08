@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
+  getPublicListing,
+  type PublicListingDependencies,
   publicListingQueries,
   publicPhotoUrl,
   resolvePublicPage,
@@ -78,5 +80,91 @@ describe('publicListingQueries', () => {
     expect(
       queries.some((query) => query.includes('offset') && query.includes('0')),
     ).toBe(true)
+  })
+})
+
+describe('getPublicListing', () => {
+  const now = new Date('2026-09-28T12:00:00.000Z')
+  const privateRow = {
+    $id: 'listing-1',
+    ownerId: 'seller-1',
+    title: 'Vélo de ville',
+    description: 'Vélo fictif en bon état.',
+    categorySlug: 'loisirs',
+    condition: 'good' as const,
+    priceCents: 12000,
+    city: 'Lyon',
+    postalCode: '69001',
+    department: '69',
+    publishedAt: '2026-09-27T10:00:00.000Z',
+  }
+
+  function dependencies(
+    overrides: Partial<PublicListingDependencies> = {},
+  ): PublicListingDependencies {
+    return {
+      findActiveListing: async () => privateRow,
+      loadViewerId: async () => 'buyer-1',
+      hasContactConsent: async () => true,
+      ...overrides,
+    }
+  }
+
+  it('signale le propriétaire à partir de la session, sans exposer son identifiant', async () => {
+    const listing = await getPublicListing(
+      'listing-1',
+      now,
+      dependencies({ loadViewerId: async () => 'seller-1' }),
+    )
+    expect(listing?.isOwner).toBe(true)
+    expect(listing).not.toHaveProperty('ownerId')
+  })
+
+  it('ne considère pas un visiteur anonyme comme propriétaire', async () => {
+    const listing = await getPublicListing(
+      'listing-1',
+      now,
+      dependencies({ loadViewerId: async () => null }),
+    )
+    expect(listing?.isOwner).toBe(false)
+  })
+
+  it('indique si le vendeur a accepté d’afficher un moyen de contact', async () => {
+    const withConsent = await getPublicListing('listing-1', now, dependencies())
+    const withoutConsent = await getPublicListing(
+      'listing-1',
+      now,
+      dependencies({ hasContactConsent: async () => false }),
+    )
+    expect(withConsent?.contactAvailable).toBe(true)
+    expect(withoutConsent?.contactAvailable).toBe(false)
+  })
+
+  it('ne transmet jamais de numéro ni de coordonnées dans la fiche publique', async () => {
+    const listing = await getPublicListing('listing-1', now, dependencies())
+    const payload = JSON.stringify(listing)
+    expect(listing).not.toHaveProperty('phone')
+    expect(listing).not.toHaveProperty('contacts')
+    expect(listing).not.toHaveProperty('contact')
+    expect(payload).not.toContain('seller-1')
+    expect(payload).not.toMatch(/phone/i)
+  })
+
+  it('renvoie une fiche absente sans lire la session ni le contact', async () => {
+    const loadViewerId = vi.fn()
+    const hasContactConsent = vi.fn()
+    await expect(
+      getPublicListing(
+        'listing-1',
+        now,
+        dependencies({
+          findActiveListing: async () => null,
+          loadViewerId,
+          hasContactConsent,
+        }),
+      ),
+    ).resolves.toBeNull()
+    expect(loadViewerId).not.toHaveBeenCalled()
+    expect(hasContactConsent).not.toHaveBeenCalled()
   })
 })

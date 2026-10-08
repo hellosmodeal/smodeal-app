@@ -8,7 +8,9 @@ import {
   computeExpiresAt,
   hasExpectedPhotoSignature,
   isPubliclyVisible,
+  listingStatusLabel,
   photoValidationMessage,
+  sellerListingActions,
 } from './rules'
 
 const now = new Date('2026-10-01T12:00:00.000Z')
@@ -172,4 +174,48 @@ describe('canChangeListingStatus', () => {
   it('refuse le changement de statut demandé par un autre membre', () => {
     expect(canChangeListingStatus(listing(), 'seller-2')).toBe(false)
   })
+})
+
+describe('listingStatusLabel', () => {
+  it.each([
+    ['active', 'En ligne'],
+    ['sold', 'Vendue'],
+    ['expired', 'Expirée'],
+    ['withdrawn', 'Retirée'],
+    ['removed_by_moderation', 'Retirée par la modération'],
+  ] as const)('libelle le statut %s « %s »', (status, label) => {
+    expect(listingStatusLabel(status)).toBe(label)
+  })
+})
+
+describe('sellerListingActions', () => {
+  it('propose modifier, vendu et retirer pour une annonce en ligne', () => {
+    expect(sellerListingActions('active')).toEqual({
+      edit: true,
+      markSold: true,
+      withdraw: true,
+      renew: false,
+    })
+  })
+
+  it('propose modifier et renouveler pour une annonce expirée', () => {
+    expect(sellerListingActions('expired')).toEqual({
+      edit: true,
+      markSold: false,
+      withdraw: false,
+      renew: true,
+    })
+  })
+
+  it.each(['sold', 'withdrawn', 'removed_by_moderation'] as const)(
+    'ne propose aucune action pour une annonce %s',
+    (status) => {
+      expect(sellerListingActions(status)).toEqual({
+        edit: false,
+        markSold: false,
+        withdraw: false,
+        renew: false,
+      })
+    },
+  )
 })

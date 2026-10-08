@@ -53,6 +53,24 @@ export async function createAccountAndSession(
   })
 }
 
+export async function registerAndSendVerification(
+  account: SignUpAccount,
+  sessionAccount: (
+    secret: string,
+  ) => Pick<VerificationAccount, 'createEmailVerification'>,
+  data: Credentials & { name: string },
+  siteUrl: string | undefined,
+): Promise<{ session: Models.Session; verificationSent: boolean }> {
+  const session = await createAccountAndSession(account, data)
+  try {
+    await sendEmailVerification(sessionAccount(session.secret), siteUrl)
+    return { session, verificationSent: true }
+  } catch {
+    // Le compte existe : l’échec d’envoi est signalé, le lien pourra être renvoyé depuis le compte.
+    return { session, verificationSent: false }
+  }
+}
+
 export async function sendEmailVerification(
   account: Pick<VerificationAccount, 'createEmailVerification'>,
   siteUrl: string | undefined,
