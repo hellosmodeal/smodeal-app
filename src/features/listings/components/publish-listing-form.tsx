@@ -15,6 +15,10 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { assertMutationSucceeded } from '@/features/abuse/result'
 import {
+  PHONE_CONSENT_HINT,
+  PHONE_CONSENT_LABEL,
+} from '@/features/contact/rules'
+import {
   FormSection,
   ListingDetailsFields,
   ListingField,
@@ -130,13 +134,9 @@ export function PublishListingForm() {
           <span className="grid gap-1">
             <span className="flex gap-1.5 items-center font-medium">
               <ShieldCheck className="size-4 text-primary" aria-hidden />
-              Partager mon numéro avec les acheteurs
+              {PHONE_CONSENT_LABEL}
             </span>
-            <span className="text-muted-foreground">
-              Seuls les membres connectés qui souhaitent vous contacter pourront
-              le voir. Sans cet accord, votre annonce reste visible mais aucun
-              acheteur ne pourra vous contacter.
-            </span>
+            <span className="text-muted-foreground">{PHONE_CONSENT_HINT}</span>
           </span>
         </label>
       </FormSection>

@@ -59,7 +59,7 @@ Après la recette locale, la table privée `rate_limits` a été créée dans le
 
 La recette Appwrite locale couvre la suspension sur les vrais services : refus quand le vendeur est lui-même administrateur, puis suspension par un autre administrateur. Le compte passe au statut bloqué, sa session et sa connexion sont refusées, ses annonces passent en `removed_by_moderation`, la fiche répond 404 et le journal contient une seule entrée `suspend_user`. La clé serveur de chaque environnement doit disposer de `users.write` et `sessions.write`.
 
-## Passe UX MVP du 8 octobre 2026 (branche `feat/mvp-ux-pass`, non fusionnée)
+## Passe UX MVP du 8 octobre 2026 (PR #10, fusionnée)
 
 Implémenté et testé localement, pas encore déployé :
 
@@ -75,3 +75,16 @@ Implémenté et testé localement, pas encore déployé :
 Recette navigateur par agents sur Appwrite local, en largeur ordinateur et téléphone : parcours vendeur, acheteur et modération réussis, sauf la vérification d’email. Celle-ci a été corrigée ensuite et validée par la recette Appwrite locale, pas encore rejouée dans le navigateur.
 
 Restent hors de cette passe : profil public vendeur, modification du compte (pseudonyme, téléphone, accord), indicateurs d’usage, suppression de compte, écran de levée de suspension, purge des photos orphelines, case d’acceptation des CGU à l’inscription, noms de départements.
+
+## Compte et suites UX du 9 octobre 2026 (branche `feat/account-and-ux-followups`, non fusionnée)
+
+Implémenté et testé localement, pas encore déployé :
+
+- Compte : `/compte` modifie le pseudonyme (ligne `profiles` créée ou mise à jour, nom du compte Appwrite aligné), le téléphone privé et l’accord d’affichage (une ligne `contacts` par membre). Un changement d’accord s’applique à toutes les annonces du membre ; le numéro n’est renvoyé qu’au membre lui-même, sans cache. Quota dédié `account_update` (20 par heure).
+- Inscription : acceptation des CGU et de la politique de confidentialité obligatoire, validée côté navigateur et serveur ; rien de nouveau n’est stocké.
+- Recherche : départements nommés (« Rhône (69) ») ; barre de catégories sans ascenseur visible.
+- Navigation : en-tête mobile sur une ligne avec bouton « Menu » ; « Se connecter » et « Créer un compte » ramènent à la page d’origine.
+- Modération : message de confirmation après chaque décision, maintenu après le rafraîchissement ; la fenêtre de suspension nomme l’annonce.
+- Validation du téléphone et texte de l’accord partagés entre le dépôt et le compte.
+
+Restent : pseudonyme affiché côté acheteur et création de la ligne `profiles` dès l’inscription (les pages légales l’annoncent), pré-remplissage du dépôt avec les coordonnées enregistrées, profil public vendeur, indicateurs d’usage, suppression de compte, levée de suspension, purge des photos orphelines.

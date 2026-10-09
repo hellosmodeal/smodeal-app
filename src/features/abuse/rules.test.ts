@@ -27,6 +27,10 @@ describe('les politiques anti-abus', () => {
       limit: 10,
       windowMs: 60 * 60_000,
     })
+    expect(rateLimitPolicy('account_update')).toMatchObject({
+      limit: 20,
+      windowMs: 60 * 60_000,
+    })
   })
 
   it('aligne les fenêtres fixes sur leur début', () => {

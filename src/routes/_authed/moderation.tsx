@@ -27,8 +27,11 @@ import {
 } from '@/features/moderation/functions'
 import {
   type ModerationActionResult,
+  type ModerationDecision,
+  moderationDecisionMessage,
   type OpenReport,
   reportedListingStatusLabel,
+  suspensionDescription,
 } from '@/features/moderation/rules'
 
 export const Route = createFileRoute('/_authed/moderation')({
@@ -51,11 +54,18 @@ export const Route = createFileRoute('/_authed/moderation')({
 
 function ModerationPage() {
   const { reports, hasMore } = Route.useLoaderData()
+  // Kept at page level: the handled report leaves the list once it refreshes.
+  const [status, setStatus] = useState('')
   return (
     <section className="space-y-6">
       <h1 className="font-heading text-3xl font-bold tracking-[-0.04em]">
         Signalements à traiter
       </h1>
+      {status && (
+        <Alert role="status">
+          <AlertDescription>{status}</AlertDescription>
+        </Alert>
+      )}
       {!reports.length && (
         <div className="rounded-xl border border-border border-dashed p-8 text-center bg-card">
           <p className="font-medium">Aucun signalement en attente.</p>
@@ -66,7 +76,13 @@ function ModerationPage() {
         </div>
       )}
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} />
+        <ReportCard
+          key={report.id}
+          report={report}
+          onDecided={(decision) =>
+            setStatus(moderationDecisionMessage(decision))
+          }
+        />
       ))}
       {hasMore && (
         <Link
@@ -87,20 +103,24 @@ const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
   timeZone: 'Europe/Paris',
 })
 
-type Decision = 'remove' | 'dismiss' | 'suspend'
-
 const MIN_REASON = 10
 
-function ReportCard({ report }: { report: OpenReport }) {
+function ReportCard({
+  report,
+  onDecided,
+}: {
+  report: OpenReport
+  onDecided: (decision: ModerationDecision) => void
+}) {
   const router = useRouter()
   const reasonId = useId()
   const [reason, setReason] = useState('')
-  const [pending, setPending] = useState<Decision | null>(null)
+  const [pending, setPending] = useState<ModerationDecision | null>(null)
   const [error, setError] = useState('')
   const reasonReady = reason.trim().length >= MIN_REASON
   const listingTitle = report.listing?.title ?? 'Annonce supprimée'
 
-  async function decide(decision: Decision) {
+  async function decide(decision: ModerationDecision) {
     if (!reasonReady) {
       setError(
         `Précisez le motif de la décision en au moins ${MIN_REASON} caractères.`,
@@ -123,6 +143,7 @@ function ReportCard({ report }: { report: OpenReport }) {
         if (result.code === 'already_handled') await router.invalidate()
         return
       }
+      onDecided(decision)
       await router.invalidate()
     } catch {
       setError(
@@ -206,7 +227,7 @@ function ReportCard({ report }: { report: OpenReport }) {
           triggerLabel="Suspendre le vendeur"
           pendingLabel="Suspension…"
           title="Suspendre ce vendeur ?"
-          description="Son compte sera bloqué, ses sessions fermées et toutes ses annonces retirées."
+          description={suspensionDescription(report.listing?.title)}
           confirmLabel="Suspendre le vendeur"
           variant="solid-destructive"
           pending={pending === 'suspend'}

@@ -17,10 +17,16 @@ type AuthField = {
   maxLength?: number
 }
 
+type AuthCheckbox = {
+  name: string
+  label: ReactNode
+}
+
 export function AuthForm({
   title,
   description,
   fields,
+  checkbox,
   schema,
   submitLabel,
   pendingLabel,
@@ -30,6 +36,7 @@ export function AuthForm({
   title: string
   description: string
   fields: Array<AuthField>
+  checkbox?: AuthCheckbox
   schema: z.ZodType
   submitLabel: string
   pendingLabel: string
@@ -91,6 +98,36 @@ export function AuthForm({
             </Field>
           )
         })}
+        {checkbox && (
+          <Field
+            orientation="horizontal"
+            data-invalid={Boolean(fieldErrors[checkbox.name])}
+            className="flex-wrap"
+          >
+            <input
+              id={checkbox.name}
+              name={checkbox.name}
+              type="checkbox"
+              aria-invalid={Boolean(fieldErrors[checkbox.name])}
+              aria-describedby={
+                fieldErrors[checkbox.name]
+                  ? `${checkbox.name}-error`
+                  : undefined
+              }
+              required
+              className="shrink-0 size-4 rounded outline-none mt-0.5 accent-primary focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:outline-2 aria-invalid:outline-destructive"
+            />
+            <FieldLabel
+              htmlFor={checkbox.name}
+              className="flex-1 font-normal leading-snug"
+            >
+              <span>{checkbox.label}</span>
+            </FieldLabel>
+            <FieldError id={`${checkbox.name}-error`} className="basis-full">
+              {fieldErrors[checkbox.name]}
+            </FieldError>
+          </Field>
+        )}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>

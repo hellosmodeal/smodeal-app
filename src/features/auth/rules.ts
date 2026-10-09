@@ -41,6 +41,24 @@ export function safeRedirect(path: string | undefined): string | undefined {
   return isSafeInternalPath(path) ? path : undefined
 }
 
+const authPages = new Set(['/connexion', '/inscription'])
+
+/**
+ * Internal path to come back to after signing in from the current page. On the
+ * auth pages themselves, keeps the redirection they were already given.
+ */
+export function signInReturnPath(
+  pathname: string,
+  searchStr: string,
+): string | undefined {
+  if (authPages.has(pathname)) {
+    return safeRedirect(
+      new URLSearchParams(searchStr).get('redirect') ?? undefined,
+    )
+  }
+  return safeRedirect(`${pathname}${searchStr}`)
+}
+
 export const authRedirectSearchSchema = z.object({
   redirect: z
     .string()
@@ -66,6 +84,14 @@ export const signUpSchema = signInSchema.extend({
     .trim()
     .min(2, 'Le pseudonyme doit contenir au moins 2 caractères.')
     .max(40, 'Le pseudonyme est limité à 40 caractères.'),
+  // A checked HTML checkbox submits "on"; the server function receives `true`.
+  acceptTerms: z.preprocess(
+    (value) => value === true || value === 'on',
+    z.literal(true, {
+      error:
+        'Acceptez les conditions générales d’utilisation et la politique de confidentialité pour créer un compte.',
+    }),
+  ),
 })
 
 export function authFieldErrors(

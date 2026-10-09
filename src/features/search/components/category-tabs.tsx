@@ -38,7 +38,7 @@ export function CategoryTabs({ criteria }: { criteria?: SearchCriteria }) {
   return (
     <nav
       aria-label="Catégories"
-      className="overflow-x-auto flex gap-3 border-b border-border sm:justify-between"
+      className="overflow-x-auto flex gap-3 border-b border-border sm:justify-between [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
     >
       {tabs.map(({ slug, label, Icon }) => {
         const active = criteria !== undefined && criteria.categorie === slug

@@ -5,6 +5,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
+import { departmentLabel } from '../departments'
 import {
   clearFilters,
   type SearchCriteria,
@@ -102,7 +103,7 @@ export function SearchFilters({
             </NativeSelectOption>
             {departments.map((department) => (
               <NativeSelectOption key={department.code} value={department.code}>
-                {department.name} ({department.code})
+                {departmentLabel(department.code)}
               </NativeSelectOption>
             ))}
           </NativeSelect>

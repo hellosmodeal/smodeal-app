@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { limitCurrentMemberAction } from '@/features/abuse/functions.server'
+import { phoneSchema } from '@/features/contact/rules'
 import {
   changeListingStatus as changeListingStatusOnServer,
   getListingForEditing as getListingForEditingOnServer,
@@ -60,14 +61,7 @@ const uploadSchema = z.custom<UploadedPhoto>(
 
 const publishListingFieldsSchema = z.object({
   ...publicListingFieldsSchema.shape,
-  phone: z
-    .string({ error: 'Indiquez un numéro de téléphone valide.' })
-    .trim()
-    .transform((value) => value.replace(/[\s.()-]/g, ''))
-    .refine(
-      (value) => /^0[1-9]\d{8}$/.test(value) || /^\+[1-9]\d{7,14}$/.test(value),
-      'Indiquez un numéro de téléphone valide.',
-    ),
+  phone: phoneSchema,
   displayConsent: z
     .union([z.literal('on'), z.null()])
     .transform((value) => value === 'on'),

@@ -53,12 +53,38 @@ function SignUpPage() {
           maxLength: 256,
         },
       ]}
+      checkbox={{
+        name: 'acceptTerms',
+        label: (
+          <>
+            J’accepte les{' '}
+            <a
+              href="/cgu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline text-primary"
+            >
+              conditions générales d’utilisation
+            </a>{' '}
+            et la{' '}
+            <a
+              href="/confidentialite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline text-primary"
+            >
+              politique de confidentialité
+            </a>
+          </>
+        ),
+      }}
       onSubmit={async (values) => {
         const result = await signUpFn({
           data: {
             name: values.name,
             email: values.email,
             password: values.password,
+            acceptTerms: values.acceptTerms === 'on',
           },
         })
         if (!result.ok) return result

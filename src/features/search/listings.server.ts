@@ -1,6 +1,7 @@
 import { type Models, Query } from 'node-appwrite'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
+import { departmentName } from './departments'
 import type { SearchCriteria, SearchListing } from './rules'
 import { searchCategories } from './rules'
 
@@ -54,10 +55,6 @@ export function publicPhotoUrl(fileId: string, env = getServerEnv()): string {
   )
   url.searchParams.set('project', env.APPWRITE_PROJECT_ID)
   return url.toString()
-}
-
-function departmentName(code: string): string {
-  return `Département ${code}`
 }
 
 export function toPublicListing(row: PublicListingRow): PublicListing | null {

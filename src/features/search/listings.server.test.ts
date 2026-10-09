@@ -45,6 +45,22 @@ describe('DTO public et pagination', () => {
     expect(listing).not.toHaveProperty('ownerId')
   })
 
+  it('nomme le département de l’annonce par son nom officiel', () => {
+    const listing = toPublicListing({
+      $id: 'listing-2',
+      title: 'Lampe',
+      description: 'Description',
+      categorySlug: 'maison',
+      condition: 'good',
+      priceCents: 2000,
+      city: 'Lyon',
+      postalCode: '69003',
+      department: '69',
+      publishedAt: '2026-09-28T10:00:00.000Z',
+    })
+    expect(listing?.departmentName).toBe('Rhône')
+  })
+
   it('ramène une page au-delà du total à la dernière page', () => {
     expect(resolvePublicPage(25, 9)).toEqual({ page: 3, pageCount: 3 })
   })
