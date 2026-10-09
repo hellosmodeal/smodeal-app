@@ -9,9 +9,7 @@
   box-sizing: border-box;
 }
 
-html,
-body,
-#app {
+html {
   min-height: 100%;
 }
 

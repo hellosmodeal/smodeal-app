@@ -1,4 +1,9 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  redirect as routeRedirect,
+  useRouter,
+} from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -7,10 +12,22 @@ import { AuthCard } from '@/features/auth/components/auth-card'
 import { AuthForm } from '@/features/auth/components/auth-form'
 import { EmailVerificationButton } from '@/features/auth/components/email-verification-button'
 import { signUp } from '@/features/auth/functions'
-import { authRedirectSearchSchema, signUpSchema } from '@/features/auth/rules'
+import {
+  authRedirectSearchSchema,
+  signedInAuthPageRedirect,
+  signUpSchema,
+} from '@/features/auth/rules'
 
 export const Route = createFileRoute('/inscription')({
   validateSearch: authRedirectSearchSchema,
+  beforeLoad: ({ context, cause, search }) => {
+    const target = signedInAuthPageRedirect({
+      signedIn: Boolean(context.user),
+      cause,
+      redirect: search.redirect,
+    })
+    if (target) throw routeRedirect({ href: target })
+  },
   head: () => ({ meta: [{ title: 'Inscription — Smodeal' }] }),
   component: SignUpPage,
 })

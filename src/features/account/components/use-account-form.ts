@@ -14,19 +14,28 @@ export function useAccountForm<Schema extends z.ZodType>({
   read,
   submit,
   successMessage,
+  onActivity,
 }: {
   schema: Schema
   read: (form: HTMLFormElement) => unknown
   submit: (data: z.output<Schema>) => Promise<MutationResult>
   successMessage: string
+  /** Called when this form is edited or submitted, to quiet the other ones. */
+  onActivity?: () => void
 }) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
+  function onChange() {
+    setSuccess(null)
+    onActivity?.()
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    onActivity?.()
     setError(null)
     setSuccess(null)
     const values = read(event.currentTarget)
@@ -49,5 +58,5 @@ export function useAccountForm<Schema extends z.ZodType>({
     }
   }
 
-  return { fieldErrors, error, success, pending, onSubmit }
+  return { fieldErrors, error, success, pending, onSubmit, onChange }
 }

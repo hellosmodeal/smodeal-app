@@ -20,7 +20,16 @@ import { publicProfileSchema } from '../rules'
 import { FormFeedback } from './form-feedback'
 import { useAccountForm } from './use-account-form'
 
-export function PublicProfileForm({ pseudonym }: { pseudonym: string }) {
+export function PublicProfileForm({
+  pseudonym,
+  showSuccess = true,
+  onActivity,
+}: {
+  pseudonym: string
+  /** False once another card of the page has been edited since. */
+  showSuccess?: boolean
+  onActivity?: () => void
+}) {
   const router = useRouter()
   const form = useAccountForm({
     schema: publicProfileSchema,
@@ -32,6 +41,7 @@ export function PublicProfileForm({ pseudonym }: { pseudonym: string }) {
       if (result.ok) await router.invalidate()
       return result
     },
+    onActivity,
     successMessage: 'Pseudonyme enregistré.',
   })
   const error = form.fieldErrors.pseudonym
@@ -47,7 +57,12 @@ export function PublicProfileForm({ pseudonym }: { pseudonym: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form noValidate onSubmit={form.onSubmit} className="grid gap-4">
+        <form
+          noValidate
+          onSubmit={form.onSubmit}
+          onChange={form.onChange}
+          className="grid gap-4"
+        >
           <Field data-invalid={Boolean(error)}>
             <FieldLabel htmlFor="pseudonym">Pseudonyme</FieldLabel>
             <Input
@@ -71,7 +86,10 @@ export function PublicProfileForm({ pseudonym }: { pseudonym: string }) {
             </FieldDescription>
             <FieldError id="pseudonym-error">{error}</FieldError>
           </Field>
-          <FormFeedback error={form.error} success={form.success} />
+          <FormFeedback
+            error={form.error}
+            success={showSuccess ? form.success : null}
+          />
           <Button
             type="submit"
             disabled={form.pending}

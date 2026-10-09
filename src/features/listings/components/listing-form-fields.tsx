@@ -1,5 +1,6 @@
 import { type ChangeEvent, type ReactNode, useState } from 'react'
 
+import { FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
@@ -37,6 +38,26 @@ export type ListingFieldDefaults = {
   city?: string
   postalCode?: string
   department?: string
+}
+
+/** Inline field errors, keyed by input name. */
+export type ListingFieldErrors = Record<string, string>
+
+/** Accessibility attributes linking an input to its description and error. */
+export function fieldAria(
+  id: string,
+  errors: ListingFieldErrors | undefined,
+  { described = false }: { described?: boolean } = {},
+) {
+  const error = errors?.[id]
+  const ids = [
+    described ? `${id}-description` : null,
+    error ? `${id}-error` : null,
+  ].filter(Boolean)
+  return {
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': ids.length ? ids.join(' ') : undefined,
+  } as const
 }
 
 export function FormSection({
@@ -77,12 +98,14 @@ export function ListingField({
   htmlFor,
   hint,
   description,
+  error,
   children,
 }: {
   label: string
   htmlFor: string
   hint?: string
   description?: ReactNode
+  error?: string
   children: ReactNode
 }) {
   return (
@@ -104,6 +127,7 @@ export function ListingField({
           {description}
         </p>
       )}
+      <FieldError id={`${htmlFor}-error`}>{error}</FieldError>
     </div>
   )
 }
@@ -111,8 +135,10 @@ export function ListingField({
 /** Title, category, condition and description, shared by publish and edit. */
 export function ListingDetailsFields({
   defaults = {},
+  errors,
 }: {
   defaults?: ListingFieldDefaults
+  errors?: ListingFieldErrors
 }) {
   const [title, setTitle] = useState(defaults.title ?? '')
   return (
@@ -121,6 +147,7 @@ export function ListingDetailsFields({
         label="Titre"
         htmlFor="title"
         hint={`${title.length}/${TITLE_MAX_LENGTH}`}
+        error={errors?.title}
       >
         <Input
           id="title"
@@ -130,15 +157,21 @@ export function ListingDetailsFields({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           required
+          {...fieldAria('title', errors)}
           className="h-10"
         />
       </ListingField>
       <div className="grid gap-5 sm:grid-cols-2">
-        <ListingField label="Catégorie" htmlFor="categorySlug">
+        <ListingField
+          label="Catégorie"
+          htmlFor="categorySlug"
+          error={errors?.categorySlug}
+        >
           <NativeSelect
             id="categorySlug"
             name="categorySlug"
             defaultValue={defaults.categorySlug}
+            {...fieldAria('categorySlug', errors)}
             className="w-full [&>select]:h-10"
           >
             {LISTING_CATEGORIES.map((category) => (
@@ -148,11 +181,16 @@ export function ListingDetailsFields({
             ))}
           </NativeSelect>
         </ListingField>
-        <ListingField label="État" htmlFor="condition">
+        <ListingField
+          label="État"
+          htmlFor="condition"
+          error={errors?.condition}
+        >
           <NativeSelect
             id="condition"
             name="condition"
             defaultValue={defaults.condition ?? 'good'}
+            {...fieldAria('condition', errors)}
             className="w-full [&>select]:h-10"
           >
             {LISTING_CONDITIONS.map((condition) => (
@@ -163,12 +201,17 @@ export function ListingDetailsFields({
           </NativeSelect>
         </ListingField>
       </div>
-      <ListingField label="Description" htmlFor="description">
+      <ListingField
+        label="Description"
+        htmlFor="description"
+        error={errors?.description}
+      >
         <Textarea
           id="description"
           name="description"
           defaultValue={defaults.description}
           required
+          {...fieldAria('description', errors)}
           placeholder="État réel, dimensions, ancienneté, raison de la vente, remise en main propre…"
           className="min-h-36"
         />
@@ -180,8 +223,10 @@ export function ListingDetailsFields({
 /** Price in euros plus postal code, city and suggested department. */
 export function PriceAndLocationFields({
   defaults = {},
+  errors,
 }: {
   defaults?: ListingFieldDefaults
+  errors?: ListingFieldErrors
 }) {
   const [department, setDepartment] = useState(defaults.department ?? '')
   const [suggestedDepartment, setSuggestedDepartment] = useState<string | null>(
@@ -197,7 +242,11 @@ export function PriceAndLocationFields({
 
   return (
     <>
-      <ListingField label="Prix" htmlFor="priceEuros">
+      <ListingField
+        label="Prix"
+        htmlFor="priceEuros"
+        error={errors?.priceEuros}
+      >
         <div className="relative sm:max-w-56">
           <Input
             id="priceEuros"
@@ -207,6 +256,7 @@ export function PriceAndLocationFields({
             placeholder="0"
             defaultValue={defaults.priceEuros}
             required
+            {...fieldAria('priceEuros', errors)}
             className="h-10 pr-9"
           />
           <span className="absolute right-3 inset-y-0 flex items-center text-sm text-muted-foreground pointer-events-none">
@@ -215,7 +265,11 @@ export function PriceAndLocationFields({
         </div>
       </ListingField>
       <div className="grid gap-5 sm:grid-cols-[10rem_1fr_8rem]">
-        <ListingField label="Code postal" htmlFor="postalCode">
+        <ListingField
+          label="Code postal"
+          htmlFor="postalCode"
+          error={errors?.postalCode}
+        >
           <Input
             id="postalCode"
             name="postalCode"
@@ -227,10 +281,11 @@ export function PriceAndLocationFields({
             defaultValue={defaults.postalCode}
             onChange={updatePostalCode}
             required
+            {...fieldAria('postalCode', errors)}
             className="h-10"
           />
         </ListingField>
-        <ListingField label="Ville" htmlFor="city">
+        <ListingField label="Ville" htmlFor="city" error={errors?.city}>
           <Input
             id="city"
             name="city"
@@ -238,10 +293,15 @@ export function PriceAndLocationFields({
             placeholder="Paris"
             defaultValue={defaults.city}
             required
+            {...fieldAria('city', errors)}
             className="h-10"
           />
         </ListingField>
-        <ListingField label="Département" htmlFor="department">
+        <ListingField
+          label="Département"
+          htmlFor="department"
+          error={errors?.department}
+        >
           <Input
             id="department"
             name="department"
@@ -252,6 +312,7 @@ export function PriceAndLocationFields({
               setDepartment(event.target.value.toUpperCase())
             }
             required
+            {...fieldAria('department', errors)}
             className="h-10"
           />
         </ListingField>

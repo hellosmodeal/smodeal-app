@@ -27,8 +27,13 @@ import { useAccountForm } from './use-account-form'
 
 export function PrivateContactForm({
   contact,
+  showSuccess = true,
+  onActivity,
 }: {
   contact: { phone: string; displayConsent: boolean } | null
+  /** False once another card of the page has been edited since. */
+  showSuccess?: boolean
+  onActivity?: () => void
 }) {
   const router = useRouter()
   const form = useAccountForm({
@@ -45,6 +50,7 @@ export function PrivateContactForm({
       if (result.ok) await router.invalidate()
       return result
     },
+    onActivity,
     successMessage: 'Coordonnées enregistrées.',
   })
   const phoneError = form.fieldErrors.phone
@@ -63,7 +69,12 @@ export function PrivateContactForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form noValidate onSubmit={form.onSubmit} className="grid gap-4">
+        <form
+          noValidate
+          onSubmit={form.onSubmit}
+          onChange={form.onChange}
+          className="grid gap-4"
+        >
           <Field data-invalid={Boolean(phoneError)}>
             <FieldLabel htmlFor="phone">Téléphone</FieldLabel>
             <Input
@@ -75,7 +86,7 @@ export function PrivateContactForm({
               defaultValue={
                 contact ? formatPhoneForDisplay(contact.phone) : undefined
               }
-              placeholder="06 12 34 56 78"
+              placeholder="Ex. 06 12 34 56 78"
               required
               aria-invalid={Boolean(phoneError)}
               aria-describedby={
@@ -122,7 +133,10 @@ export function PrivateContactForm({
             </span>
           </label>
           <FieldError id="display-consent-error">{consentError}</FieldError>
-          <FormFeedback error={form.error} success={form.success} />
+          <FormFeedback
+            error={form.error}
+            success={showSuccess ? form.success : null}
+          />
           <Button
             type="submit"
             disabled={form.pending}

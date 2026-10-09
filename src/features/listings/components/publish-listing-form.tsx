@@ -15,16 +15,20 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { assertMutationSucceeded } from '@/features/abuse/result'
 import {
+  formatPhoneForDisplay,
   PHONE_CONSENT_HINT,
   PHONE_CONSENT_LABEL,
 } from '@/features/contact/rules'
 import {
   FormSection,
+  fieldAria,
   ListingDetailsFields,
   ListingField,
+  type ListingFieldErrors,
   PriceAndLocationFields,
 } from '@/features/listings/components/listing-form-fields'
 import { publishListing } from '@/features/listings/functions'
+import { publishListingFieldErrors } from '@/features/listings/listing-form'
 import { priceInputToCents } from '@/features/listings/price-input'
 import {
   MAX_LISTING_PHOTOS,
@@ -34,18 +38,54 @@ import { cn } from '@/lib/utils'
 
 type SelectedPhoto = { file: File; url: string }
 
-export function PublishListingForm() {
+/** Saved private contact of the member, used to prefill the last step. */
+export type SavedContact = { phone: string; displayConsent: boolean }
+
+/** Input names in page order, to focus the first invalid one. */
+const FIELD_ORDER = [
+  'title',
+  'categorySlug',
+  'condition',
+  'description',
+  'priceEuros',
+  'postalCode',
+  'city',
+  'department',
+  'phone',
+  'displayConsent',
+] as const
+
+export function PublishListingForm({
+  contact,
+}: {
+  contact: SavedContact | null
+}) {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<ListingFieldErrors>({})
   const [pending, setPending] = useState(false)
   const photos = usePhotoSelection()
+
+  function clearFieldError(event: FormEvent<HTMLFormElement>) {
+    const name = (event.target as { name?: unknown }).name
+    if (typeof name !== 'string' || !fieldErrors[name]) return
+    setFieldErrors(({ [name]: _cleared, ...rest }) => rest)
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    const form = event.currentTarget
+    const errors = publishListingFieldErrors(new FormData(form))
+    setFieldErrors(errors)
+    const firstInvalid = FIELD_ORDER.find((field) => errors[field])
+    if (firstInvalid) {
+      form.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus()
+      return
+    }
     setPending(true)
     try {
-      const data = new FormData(event.currentTarget)
+      const data = new FormData(form)
       data.set(
         'priceCents',
         String(priceInputToCents(String(data.get('priceEuros') ?? ''))),
@@ -72,13 +112,14 @@ export function PublishListingForm() {
       encType="multipart/form-data"
       noValidate
       onSubmit={submit}
+      onChange={clearFieldError}
     >
       <FormSection
         step={1}
         title="Votre objet"
         description="Un titre précis et une description honnête attirent les bons acheteurs."
       >
-        <ListingDetailsFields />
+        <ListingDetailsFields errors={fieldErrors} />
       </FormSection>
 
       <FormSection
@@ -94,7 +135,7 @@ export function PublishListingForm() {
         title="Prix et localisation"
         description="Seules la ville et le code postal apparaissent sur l’annonce."
       >
-        <PriceAndLocationFields />
+        <PriceAndLocationFields errors={fieldErrors} />
       </FormSection>
 
       <FormSection
@@ -106,6 +147,7 @@ export function PublishListingForm() {
           label="Téléphone"
           htmlFor="phone"
           description="Numéro français (06 12 34 56 78) ou international (+33 6 12 34 56 78)."
+          error={fieldErrors.phone}
         >
           <Input
             id="phone"
@@ -115,9 +157,12 @@ export function PublishListingForm() {
             autoComplete="tel"
             pattern="\+?[0-9 .\(\)\-]{9,20}"
             title="Numéro français à 10 chiffres ou international commençant par +, espaces et points acceptés."
-            aria-describedby="phone-description"
-            placeholder="06 12 34 56 78"
+            defaultValue={
+              contact ? formatPhoneForDisplay(contact.phone) : undefined
+            }
+            placeholder="Ex. 06 12 34 56 78"
             required
+            {...fieldAria('phone', fieldErrors, { described: true })}
             className="h-10 sm:max-w-64"
           />
         </ListingField>
@@ -129,6 +174,7 @@ export function PublishListingForm() {
             id="display-consent"
             name="displayConsent"
             type="checkbox"
+            defaultChecked={contact?.displayConsent ?? false}
             className="shrink-0 size-4 mt-0.5 accent-primary"
           />
           <span className="grid gap-1">

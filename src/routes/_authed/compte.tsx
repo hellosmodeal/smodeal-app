@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { PrivateContactForm } from '@/features/account/components/private-contact-form'
@@ -16,6 +17,10 @@ export const Route = createFileRoute('/_authed/compte')({
 function AccountPage() {
   const { user } = Route.useRouteContext()
   const settings = Route.useLoaderData()
+  // Only the card edited last keeps its success message.
+  const [activeCard, setActiveCard] = useState<'profile' | 'contact' | null>(
+    null,
+  )
 
   return (
     <section className="space-y-6">
@@ -59,8 +64,16 @@ function AccountPage() {
       </nav>
       {settings.ok ? (
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-          <PublicProfileForm pseudonym={settings.pseudonym} />
-          <PrivateContactForm contact={settings.contact} />
+          <PublicProfileForm
+            pseudonym={settings.pseudonym}
+            showSuccess={activeCard !== 'contact'}
+            onActivity={() => setActiveCard('profile')}
+          />
+          <PrivateContactForm
+            contact={settings.contact}
+            showSuccess={activeCard !== 'profile'}
+            onActivity={() => setActiveCard('contact')}
+          />
         </div>
       ) : (
         <Alert variant="destructive">

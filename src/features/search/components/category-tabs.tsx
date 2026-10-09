@@ -1,33 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import {
-  Baby,
-  Bike,
-  Grid2X2,
-  House,
-  Laptop,
-  Leaf,
-  type LucideIcon,
-  Shirt,
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { type SearchCriteria, searchCategories } from '../rules'
-
-const categoryIcons: Record<string, LucideIcon> = {
-  maison: House,
-  multimedia: Laptop,
-  mode: Shirt,
-  loisirs: Bike,
-  enfants: Baby,
-  jardin: Leaf,
-}
+import { AllCategoriesIcon, navigationCategories } from '../category-icons'
+import type { SearchCriteria } from '../rules'
 
 const tabs = [
-  { slug: undefined, label: 'Tout', Icon: Grid2X2 },
-  ...searchCategories.map((category) => ({
-    slug: category.slug,
-    label: category.label,
-    Icon: categoryIcons[category.slug] ?? Grid2X2,
-  })),
+  { slug: undefined, label: 'Tout', Icon: AllCategoriesIcon },
+  ...navigationCategories,
 ]
 
 /**

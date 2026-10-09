@@ -59,6 +59,24 @@ export function signInReturnPath(
   return safeRedirect(`${pathname}${searchStr}`)
 }
 
+/**
+ * Where to send a member who opens /connexion or /inscription while already
+ * signed in. A reload of the same page after signing in on it (`stay`) is left
+ * to the page, which shows its own next step.
+ */
+export function signedInAuthPageRedirect({
+  signedIn,
+  cause,
+  redirect,
+}: {
+  signedIn: boolean
+  cause: 'preload' | 'enter' | 'stay'
+  redirect: string | undefined
+}): string | null {
+  if (!signedIn || cause === 'stay') return null
+  return safeRedirect(redirect) ?? '/compte'
+}
+
 export const authRedirectSearchSchema = z.object({
   redirect: z
     .string()

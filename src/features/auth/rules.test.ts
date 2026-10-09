@@ -10,6 +10,7 @@ import {
   safeRedirect,
   sessionCookieName,
   sessionCookieOptions,
+  signedInAuthPageRedirect,
   signInReturnPath,
   signInSchema,
   signUpSchema,
@@ -211,5 +212,47 @@ describe('signInReturnPath', () => {
 
   it('écarte un chemin qui sortirait du site', () => {
     expect(signInReturnPath('//exemple.fr', '')).toBeUndefined()
+  })
+})
+
+describe('signedInAuthPageRedirect', () => {
+  it('renvoie un membre déjà connecté vers la redirection demandée', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'enter',
+        redirect: '/deposer',
+      }),
+    ).toBe('/deposer')
+  })
+
+  it('renvoie un membre déjà connecté vers son compte sans redirection sûre', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'enter',
+        redirect: 'https://exemple.invalid/piege',
+      }),
+    ).toBe('/compte')
+  })
+
+  it('laisse un visiteur non connecté sur la page', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: false,
+        cause: 'enter',
+        redirect: undefined,
+      }),
+    ).toBeNull()
+  })
+
+  it('laisse la page finir son parcours après une connexion sur place', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'stay',
+        redirect: undefined,
+      }),
+    ).toBeNull()
   })
 })

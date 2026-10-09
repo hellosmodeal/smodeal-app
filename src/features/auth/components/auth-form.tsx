@@ -49,6 +49,10 @@ export function AuthForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
 
+  function clearFieldError(name: string) {
+    setFieldErrors(({ [name]: _cleared, ...rest }) => rest)
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
@@ -99,34 +103,40 @@ export function AuthForm({
           )
         })}
         {checkbox && (
-          <Field
-            orientation="horizontal"
-            data-invalid={Boolean(fieldErrors[checkbox.name])}
-            className="flex-wrap"
-          >
-            <input
-              id={checkbox.name}
-              name={checkbox.name}
-              type="checkbox"
-              aria-invalid={Boolean(fieldErrors[checkbox.name])}
-              aria-describedby={
-                fieldErrors[checkbox.name]
-                  ? `${checkbox.name}-error`
-                  : undefined
-              }
-              required
-              className="shrink-0 size-4 rounded outline-none mt-0.5 accent-primary focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:outline-2 aria-invalid:outline-destructive"
-            />
-            <FieldLabel
-              htmlFor={checkbox.name}
-              className="flex-1 font-normal leading-snug"
+          <div className="grid gap-2">
+            <Field
+              orientation="horizontal"
+              data-invalid={Boolean(fieldErrors[checkbox.name])}
+              className="items-start"
             >
-              <span>{checkbox.label}</span>
-            </FieldLabel>
-            <FieldError id={`${checkbox.name}-error`} className="basis-full">
+              <input
+                id={checkbox.name}
+                name={checkbox.name}
+                type="checkbox"
+                aria-invalid={Boolean(fieldErrors[checkbox.name])}
+                aria-describedby={
+                  fieldErrors[checkbox.name]
+                    ? `${checkbox.name}-error`
+                    : undefined
+                }
+                onChange={(event) => {
+                  if (event.currentTarget.checked)
+                    clearFieldError(checkbox.name)
+                }}
+                required
+                className="shrink-0 size-4 rounded outline-none mt-0.5 accent-primary focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:outline-2 aria-invalid:outline-destructive"
+              />
+              <FieldLabel
+                htmlFor={checkbox.name}
+                className="block min-w-0 font-normal leading-snug"
+              >
+                {checkbox.label}
+              </FieldLabel>
+            </Field>
+            <FieldError id={`${checkbox.name}-error`} className="pl-6">
               {fieldErrors[checkbox.name]}
             </FieldError>
-          </Field>
+          </div>
         )}
         {error && (
           <Alert variant="destructive">
