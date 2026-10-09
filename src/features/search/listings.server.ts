@@ -1,6 +1,7 @@
 import { type Models, Query } from 'node-appwrite'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
+import { departmentName } from './departments'
 import type { SearchCriteria, SearchListing } from './rules'
 import { searchCategories } from './rules'
 
@@ -54,10 +55,6 @@ export function publicPhotoUrl(fileId: string, env = getServerEnv()): string {
   )
   url.searchParams.set('project', env.APPWRITE_PROJECT_ID)
   return url.toString()
-}
-
-function departmentName(code: string): string {
-  return `Département ${code}`
 }
 
 export function toPublicListing(row: PublicListingRow): PublicListing | null {
@@ -172,6 +169,7 @@ export type PublicListingDetail = PublicListing & {
   isOwner: boolean
   /** The seller consented to display a contact; never carries the contact itself. */
   contactAvailable: boolean
+  sellerPseudonym: string | null
 }
 
 type PrivateListingRow = PublicListingRow & { ownerId: string }
@@ -183,6 +181,7 @@ export type PublicListingDependencies = {
   ) => Promise<PrivateListingRow | null>
   loadViewerId: () => Promise<string | null>
   hasContactConsent: (ownerId: string) => Promise<boolean>
+  findSellerPseudonym: (ownerId: string) => Promise<string | null>
 }
 
 const productionListingDependencies: PublicListingDependencies = {
@@ -222,6 +221,29 @@ const productionListingDependencies: PublicListingDependencies = {
     })
     return response.rows[0]?.displayConsent === true
   },
+  async findSellerPseudonym(ownerId) {
+    const { tablesDB, users } = adminClient()
+    const response = await tablesDB.listRows<
+      Models.Row & { userId: string; pseudonym: string }
+    >({
+      databaseId: getServerEnv().APPWRITE_DATABASE_ID,
+      tableId: 'profiles',
+      queries: [
+        Query.equal('userId', ownerId),
+        Query.select(['userId', 'pseudonym']),
+        Query.limit(1),
+      ],
+      ttl: 0,
+    })
+    const pseudonym = response.rows[0]?.pseudonym
+    if (pseudonym) return pseudonym
+    try {
+      const owner = await users.get({ userId: ownerId })
+      return owner.name.trim() || null
+    } catch {
+      return null
+    }
+  },
 }
 
 export async function getPublicListing(
@@ -233,14 +255,16 @@ export async function getPublicListing(
   if (!row) return null
   const listing = toPublicListing(row)
   if (!listing) return null
-  const [viewerId, contactAvailable] = await Promise.all([
+  const [viewerId, contactAvailable, sellerPseudonym] = await Promise.all([
     dependencies.loadViewerId(),
     dependencies.hasContactConsent(row.ownerId),
+    dependencies.findSellerPseudonym(row.ownerId),
   ])
   return {
     ...listing,
     isOwner: viewerId !== null && viewerId === row.ownerId,
     contactAvailable,
+    sellerPseudonym,
   }
 }
 

@@ -1,11 +1,28 @@
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  redirect as routeRedirect,
+  useRouter,
+} from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { AuthForm } from '@/features/auth/components/auth-form'
 import { signIn } from '@/features/auth/functions'
-import { authRedirectSearchSchema, signInSchema } from '@/features/auth/rules'
+import {
+  authRedirectSearchSchema,
+  signedInAuthPageRedirect,
+  signInSchema,
+} from '@/features/auth/rules'
 
 export const Route = createFileRoute('/connexion')({
   validateSearch: authRedirectSearchSchema,
+  beforeLoad: ({ context, cause, search }) => {
+    const target = signedInAuthPageRedirect({
+      signedIn: Boolean(context.user),
+      cause,
+      redirect: search.redirect,
+    })
+    if (target) throw routeRedirect({ href: target })
+  },
   head: () => ({ meta: [{ title: 'Connexion — Smodeal' }] }),
   component: SignInPage,
 })

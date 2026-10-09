@@ -56,3 +56,27 @@ export function reportedListingStatusLabel(
     ? listingStatusLabel(listing.status)
     : listing.status
 }
+
+export type ModerationDecision = 'remove' | 'dismiss' | 'suspend'
+
+const decisionMessages: Record<ModerationDecision, string> = {
+  dismiss: 'Signalement classé.',
+  remove: 'Annonce retirée.',
+  suspend: 'Vendeur suspendu et annonces retirées.',
+}
+
+export function moderationDecisionMessage(
+  decision: ModerationDecision,
+): string {
+  return decisionMessages[decision]
+}
+
+/** The seller's identity is never sent to the client: name their listing. */
+export function suspensionDescription(
+  listingTitle: string | undefined,
+): string {
+  const seller = listingTitle
+    ? `Le vendeur de « ${listingTitle} »`
+    : 'Le vendeur de l’annonce supprimée'
+  return `${seller} verra son compte bloqué, ses sessions fermées et toutes ses annonces retirées.`
+}

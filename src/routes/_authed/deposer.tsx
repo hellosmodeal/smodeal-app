@@ -1,16 +1,20 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, MailWarning } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { getAccountSettings } from '@/features/account/functions'
 import { EmailVerificationButton } from '@/features/auth/components/email-verification-button'
 import { PublishListingForm } from '@/features/listings/components/publish-listing-form'
 
 export const Route = createFileRoute('/_authed/deposer')({
+  // Own private contact (no-store), so publishing keeps the saved consent.
+  loader: () => getAccountSettings(),
   head: () => ({ meta: [{ title: 'Déposer une annonce — Smodeal' }] }),
   component: PublishPage,
 })
 
 function PublishPage() {
   const { user } = Route.useRouteContext()
+  const settings = Route.useLoaderData()
   return (
     <section className="max-w-3xl mx-auto">
       <Link
@@ -29,7 +33,7 @@ function PublishPage() {
             Quatre étapes, quelques minutes. Votre annonce reste en ligne 60
             jours.
           </p>
-          <PublishListingForm />
+          <PublishListingForm contact={settings.ok ? settings.contact : null} />
         </>
       ) : (
         <div className="grid gap-4 mt-6">

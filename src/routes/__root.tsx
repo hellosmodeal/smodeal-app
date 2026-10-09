@@ -7,13 +7,10 @@ import {
   useLocation,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { Plus } from 'lucide-react'
-import { BrandMark } from '@/components/brand-mark'
-import { buttonVariants } from '@/components/ui/button'
-import { SignOutButton } from '@/features/auth/components/sign-out-button'
 import type { CurrentUser } from '@/features/auth/functions'
 import { getCurrentUser } from '@/features/auth/functions'
 import { contactEmail } from '@/features/legal/content'
+import { SiteHeader } from '@/features/navigation/components/site-header'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRouteWithContext<{
@@ -60,9 +57,6 @@ export const Route = createRootRouteWithContext<{
   shellComponent: RootDocument,
 })
 
-const navLinkClass =
-  'rounded-sm text-foreground/75 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring data-[status=active]:text-foreground'
-
 const footerLinkClass =
   'rounded-sm hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring'
 
@@ -87,91 +81,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="antialiased bg-background text-foreground">
-        <header className="relative z-10 border-b border-border/70 bg-card">
-          <div className="flex gap-y-2 gap-x-4 flex-wrap items-center justify-between max-w-7xl mx-auto py-3 px-4 sm:flex-nowrap sm:gap-6 sm:h-16 sm:py-0 sm:px-8">
-            <Link
-              to="/"
-              className="shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-              aria-label="Smodeal, accueil"
-            >
-              <BrandMark />
-            </Link>
-            {isHome && (
-              <a
-                href="#annonces"
-                className="hidden rounded-sm mr-auto text-sm font-medium sm:block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring hover:text-primary"
-              >
-                Explorer
-              </a>
-            )}
-            {user ? (
-              <Link
-                to="/deposer"
-                className={buttonVariants({
-                  size: 'sm',
-                  className: 'sm:order-last',
-                })}
-              >
-                <Plus aria-hidden="true" />
-                <span className="sm:hidden">Déposer</span>
-                <span className="hidden sm:inline">Déposer une annonce</span>
-              </Link>
-            ) : (
-              <Link
-                to="/connexion"
-                search={{ redirect: '/deposer' }}
-                className={buttonVariants({
-                  size: 'sm',
-                  className: 'sm:order-last',
-                })}
-              >
-                <Plus aria-hidden="true" />
-                <span className="sm:hidden">Déposer</span>
-                <span className="hidden sm:inline">Déposer une annonce</span>
-              </Link>
-            )}
-            <nav
-              className="flex gap-y-1 gap-x-4 flex-wrap items-center w-full text-sm font-medium sm:flex-nowrap sm:gap-6 sm:w-auto sm:ml-auto"
-              aria-label="Navigation principale"
-            >
-              {user ? (
-                <>
-                  <Link to="/mes-annonces" className={navLinkClass}>
-                    Mes annonces
-                  </Link>
-                  {user.isAdmin && (
-                    <Link
-                      to="/moderation"
-                      search={{ after: undefined }}
-                      className={navLinkClass}
-                    >
-                      Modération
-                    </Link>
-                  )}
-                  <Link to="/compte" className={navLinkClass}>
-                    Mon compte
-                  </Link>
-                  <SignOutButton />
-                </>
-              ) : (
-                <>
-                  <Link to="/connexion" className={navLinkClass}>
-                    Se connecter
-                  </Link>
-                  <Link to="/inscription" className={navLinkClass}>
-                    Créer un compte
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        </header>
+      <body className="flex flex-col min-h-dvh antialiased bg-background text-foreground">
+        <SiteHeader user={user} />
         <main
           className={
-            isFullWidth
-              ? 'min-h-[60vh]'
-              : 'mx-auto min-h-[60vh] max-w-5xl px-4 py-8'
+            isFullWidth ? 'flex-1' : 'mx-auto w-full max-w-5xl flex-1 px-4 py-8'
           }
         >
           {children}

@@ -2,6 +2,7 @@ import { ID, Query } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { getServerEnv } from '@/server/env.server'
+import type { UploadedPhoto } from './listing-form'
 import {
   canChangeListingStatus,
   canEditListing,
@@ -29,13 +30,6 @@ type ListingInput = {
   department: string
   phone: string
   displayConsent: boolean
-}
-
-export type UploadedPhoto = {
-  name: string
-  size: number
-  type: string
-  arrayBuffer: () => Promise<ArrayBuffer>
 }
 
 export type PublishListingInput = ListingInput & { photos: UploadedPhoto[] }

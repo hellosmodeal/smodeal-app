@@ -17,10 +17,16 @@ type AuthField = {
   maxLength?: number
 }
 
+type AuthCheckbox = {
+  name: string
+  label: ReactNode
+}
+
 export function AuthForm({
   title,
   description,
   fields,
+  checkbox,
   schema,
   submitLabel,
   pendingLabel,
@@ -30,6 +36,7 @@ export function AuthForm({
   title: string
   description: string
   fields: Array<AuthField>
+  checkbox?: AuthCheckbox
   schema: z.ZodType
   submitLabel: string
   pendingLabel: string
@@ -41,6 +48,10 @@ export function AuthForm({
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [pending, setPending] = useState(false)
+
+  function clearFieldError(name: string) {
+    setFieldErrors(({ [name]: _cleared, ...rest }) => rest)
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -91,6 +102,42 @@ export function AuthForm({
             </Field>
           )
         })}
+        {checkbox && (
+          <div className="grid gap-2">
+            <Field
+              orientation="horizontal"
+              data-invalid={Boolean(fieldErrors[checkbox.name])}
+              className="items-start"
+            >
+              <input
+                id={checkbox.name}
+                name={checkbox.name}
+                type="checkbox"
+                aria-invalid={Boolean(fieldErrors[checkbox.name])}
+                aria-describedby={
+                  fieldErrors[checkbox.name]
+                    ? `${checkbox.name}-error`
+                    : undefined
+                }
+                onChange={(event) => {
+                  if (event.currentTarget.checked)
+                    clearFieldError(checkbox.name)
+                }}
+                required
+                className="shrink-0 size-4 rounded outline-none mt-0.5 accent-primary focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:outline-2 aria-invalid:outline-destructive"
+              />
+              <FieldLabel
+                htmlFor={checkbox.name}
+                className="block min-w-0 font-normal leading-snug"
+              >
+                {checkbox.label}
+              </FieldLabel>
+            </Field>
+            <FieldError id={`${checkbox.name}-error`} className="pl-6">
+              {fieldErrors[checkbox.name]}
+            </FieldError>
+          </div>
+        )}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>

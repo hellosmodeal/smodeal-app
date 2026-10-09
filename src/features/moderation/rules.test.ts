@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { reportedListingStatusLabel } from './rules'
+import {
+  moderationDecisionMessage,
+  reportedListingStatusLabel,
+  suspensionDescription,
+} from './rules'
 
 describe('reportedListingStatusLabel', () => {
   it('signale une annonce supprimée', () => {
@@ -44,5 +48,29 @@ describe('reportedListingStatusLabel', () => {
         publiclyVisible: false,
       }),
     ).toBe('archived')
+  })
+})
+
+describe('moderationDecisionMessage', () => {
+  it('confirme chaque décision de modération', () => {
+    expect(moderationDecisionMessage('dismiss')).toBe('Signalement classé.')
+    expect(moderationDecisionMessage('remove')).toBe('Annonce retirée.')
+    expect(moderationDecisionMessage('suspend')).toBe(
+      'Vendeur suspendu et annonces retirées.',
+    )
+  })
+})
+
+describe('suspensionDescription', () => {
+  it('nomme l’annonce du vendeur à suspendre', () => {
+    expect(suspensionDescription('Vélo de ville')).toBe(
+      'Le vendeur de « Vélo de ville » verra son compte bloqué, ses sessions fermées et toutes ses annonces retirées.',
+    )
+  })
+
+  it('reste explicite quand l’annonce a été supprimée', () => {
+    expect(suspensionDescription(undefined)).toBe(
+      'Le vendeur de l’annonce supprimée verra son compte bloqué, ses sessions fermées et toutes ses annonces retirées.',
+    )
   })
 })

@@ -10,6 +10,8 @@ import {
   safeRedirect,
   sessionCookieName,
   sessionCookieOptions,
+  signedInAuthPageRedirect,
+  signInReturnPath,
   signInSchema,
   signUpSchema,
 } from './rules'
@@ -121,6 +123,33 @@ describe('authRedirectSearchSchema', () => {
   })
 })
 
+describe('signUpSchema', () => {
+  const account = {
+    name: 'Camille',
+    email: 'camille@example.test',
+    password: 'mot-de-passe-solide',
+  }
+
+  it('exige l’acceptation des conditions côté serveur', () => {
+    expect(signUpSchema.safeParse(account).success).toBe(false)
+    expect(
+      signUpSchema.safeParse({ ...account, acceptTerms: false }).success,
+    ).toBe(false)
+    expect(
+      signUpSchema.safeParse({ ...account, acceptTerms: 'false' }).success,
+    ).toBe(false)
+  })
+
+  it('accepte la case cochée du formulaire ou un booléen vrai', () => {
+    expect(signUpSchema.parse({ ...account, acceptTerms: 'on' })).toMatchObject(
+      { acceptTerms: true },
+    )
+    expect(signUpSchema.parse({ ...account, acceptTerms: true })).toMatchObject(
+      { acceptTerms: true },
+    )
+  })
+})
+
 describe('authFieldErrors', () => {
   it('explique chaque champ d’inscription invalide en français', () => {
     expect(
@@ -133,6 +162,8 @@ describe('authFieldErrors', () => {
       name: 'Le pseudonyme doit contenir au moins 2 caractères.',
       email: 'Saisissez une adresse email valide.',
       password: 'Le mot de passe doit contenir au moins 8 caractères.',
+      acceptTerms:
+        'Acceptez les conditions générales d’utilisation et la politique de confidentialité pour créer un compte.',
     })
   })
 
@@ -142,6 +173,7 @@ describe('authFieldErrors', () => {
         name: 'Camille',
         email: 'camille@example.test',
         password: 'mot-de-passe-solide',
+        acceptTerms: 'on',
       }),
     ).toEqual({})
   })
@@ -151,5 +183,76 @@ describe('authFieldErrors', () => {
       email: 'Saisissez une adresse email valide.',
       password: 'Le mot de passe doit contenir au moins 8 caractères.',
     })
+  })
+})
+
+describe('signInReturnPath', () => {
+  it('ramène à la page courante avec ses critères après connexion', () => {
+    expect(signInReturnPath('/recherche', '?q=velo&page=2')).toBe(
+      '/recherche?q=velo&page=2',
+    )
+    expect(signInReturnPath('/annonces/listing-1', '')).toBe(
+      '/annonces/listing-1',
+    )
+  })
+
+  it('ne renvoie pas vers les pages de connexion ou d’inscription', () => {
+    expect(signInReturnPath('/connexion', '')).toBeUndefined()
+    expect(signInReturnPath('/inscription', '')).toBeUndefined()
+  })
+
+  it('conserve la redirection déjà demandée sur ces pages', () => {
+    expect(signInReturnPath('/inscription', '?redirect=%2Fdeposer')).toBe(
+      '/deposer',
+    )
+    expect(
+      signInReturnPath('/connexion', '?redirect=https%3A%2F%2Fexemple.fr'),
+    ).toBeUndefined()
+  })
+
+  it('écarte un chemin qui sortirait du site', () => {
+    expect(signInReturnPath('//exemple.fr', '')).toBeUndefined()
+  })
+})
+
+describe('signedInAuthPageRedirect', () => {
+  it('renvoie un membre déjà connecté vers la redirection demandée', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'enter',
+        redirect: '/deposer',
+      }),
+    ).toBe('/deposer')
+  })
+
+  it('renvoie un membre déjà connecté vers son compte sans redirection sûre', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'enter',
+        redirect: 'https://exemple.invalid/piege',
+      }),
+    ).toBe('/compte')
+  })
+
+  it('laisse un visiteur non connecté sur la page', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: false,
+        cause: 'enter',
+        redirect: undefined,
+      }),
+    ).toBeNull()
+  })
+
+  it('laisse la page finir son parcours après une connexion sur place', () => {
+    expect(
+      signedInAuthPageRedirect({
+        signedIn: true,
+        cause: 'stay',
+        redirect: undefined,
+      }),
+    ).toBeNull()
   })
 })

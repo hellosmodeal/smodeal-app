@@ -13,6 +13,7 @@ const RATE_LIMIT_ACTIONS = [
   'listing_status_change',
   'contact_reveal',
   'report_submit',
+  'account_update',
 ] as const
 
 export type RateLimitAction = (typeof RATE_LIMIT_ACTIONS)[number]
@@ -56,6 +57,7 @@ const policies: Record<RateLimitAction, RateLimitPolicy> = {
   listing_publish: { limit: 10, windowMs: hour, anonymousGlobalLimit: 1_000 },
   listing_renew: { limit: 10, windowMs: hour, anonymousGlobalLimit: 1_000 },
   listing_update: { limit: 30, windowMs: hour, anonymousGlobalLimit: 1_000 },
+  account_update: { limit: 20, windowMs: hour, anonymousGlobalLimit: 1_000 },
   listing_status_change: {
     limit: 30,
     windowMs: hour,

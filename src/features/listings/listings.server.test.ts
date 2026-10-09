@@ -153,6 +153,36 @@ describe('publishListing', () => {
     )
   })
 
+  it('conserve l’accord d’affichage existant quand le formulaire le renvoie', async () => {
+    const deps = dependencies()
+    deps.tables.listRows = vi.fn(async () => ({ rows: [{ $id: 'contact-1' }] }))
+
+    await publishListing(input, new Date(), deps)
+
+    expect(deps.tables.updateRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'contacts',
+        rowId: 'contact-1',
+        data: { userId: 'seller-1', phone: '0600000000', displayConsent: true },
+      }),
+    )
+  })
+
+  it('retire l’accord pour toutes les annonces quand il est décoché à la publication', async () => {
+    const deps = dependencies()
+    deps.tables.listRows = vi.fn(async () => ({ rows: [{ $id: 'contact-1' }] }))
+
+    await publishListing({ ...input, displayConsent: false }, new Date(), deps)
+
+    expect(deps.tables.updateRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'contacts',
+        rowId: 'contact-1',
+        data: expect.objectContaining({ displayConsent: false }),
+      }),
+    )
+  })
+
   it('supprime les photos déjà envoyées si la création de l’annonce échoue', async () => {
     const tables = dependencies().tables
     tables.createRow = vi.fn(async ({ tableId }: { tableId: string }) => {

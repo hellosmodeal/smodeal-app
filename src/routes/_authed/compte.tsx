@@ -1,16 +1,26 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
+import { PrivateContactForm } from '@/features/account/components/private-contact-form'
+import { PublicProfileForm } from '@/features/account/components/public-profile-form'
+import { getAccountSettings } from '@/features/account/functions'
 import { EmailVerificationButton } from '@/features/auth/components/email-verification-button'
 import { SignOutButton } from '@/features/auth/components/sign-out-button'
 
 export const Route = createFileRoute('/_authed/compte')({
+  loader: () => getAccountSettings(),
   head: () => ({ meta: [{ title: 'Mon compte — Smodeal' }] }),
   component: AccountPage,
 })
 
 function AccountPage() {
   const { user } = Route.useRouteContext()
+  const settings = Route.useLoaderData()
+  // Only the card edited last keeps its success message.
+  const [activeCard, setActiveCard] = useState<'profile' | 'contact' | null>(
+    null,
+  )
 
   return (
     <section className="space-y-6">
@@ -52,6 +62,24 @@ function AccountPage() {
           </Link>
         )}
       </nav>
+      {settings.ok ? (
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <PublicProfileForm
+            pseudonym={settings.pseudonym}
+            showSuccess={activeCard !== 'contact'}
+            onActivity={() => setActiveCard('profile')}
+          />
+          <PrivateContactForm
+            contact={settings.contact}
+            showSuccess={activeCard !== 'profile'}
+            onActivity={() => setActiveCard('contact')}
+          />
+        </div>
+      ) : (
+        <Alert variant="destructive">
+          <AlertDescription>{settings.message}</AlertDescription>
+        </Alert>
+      )}
       <SignOutButton variant="outline" size="default" />
     </section>
   )

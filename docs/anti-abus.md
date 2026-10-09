@@ -15,6 +15,7 @@ Les mutations Smodeal passent par le limiteur serveur Appwrite avant le service 
 | Édition ou changement de statut | 30 | 1 heure |
 | Affichage d’un contact | 30 | 10 minutes |
 | Signalement | 10 | 1 heure |
+| Modification du compte | 20 | 1 heure |
 
 Les membres sont identifiés par un HMAC de leur identifiant Appwrite stable et de l’action. Les entrées anonymes consomment d’abord un seau dérivé de l’adresse email normalisée ou du `userId` du jeton, puis un quota global par action. Le seau est réparti entre 4 096 clés HMAC : une collision partage donc conservativement un quota, sans créer une clé par valeur fournie par un attaquant. Le secret d’un jeton ne participe pas à la clé.
 

@@ -45,6 +45,22 @@ describe('DTO public et pagination', () => {
     expect(listing).not.toHaveProperty('ownerId')
   })
 
+  it('nomme le département de l’annonce par son nom officiel', () => {
+    const listing = toPublicListing({
+      $id: 'listing-2',
+      title: 'Lampe',
+      description: 'Description',
+      categorySlug: 'maison',
+      condition: 'good',
+      priceCents: 2000,
+      city: 'Lyon',
+      postalCode: '69003',
+      department: '69',
+      publishedAt: '2026-09-28T10:00:00.000Z',
+    })
+    expect(listing?.departmentName).toBe('Rhône')
+  })
+
   it('ramène une page au-delà du total à la dernière page', () => {
     expect(resolvePublicPage(25, 9)).toEqual({ page: 3, pageCount: 3 })
   })
@@ -106,6 +122,7 @@ describe('getPublicListing', () => {
       findActiveListing: async () => privateRow,
       loadViewerId: async () => 'buyer-1',
       hasContactConsent: async () => true,
+      findSellerPseudonym: async () => 'Marie L.',
       ...overrides,
     }
   }
@@ -138,6 +155,26 @@ describe('getPublicListing', () => {
     )
     expect(withConsent?.contactAvailable).toBe(true)
     expect(withoutConsent?.contactAvailable).toBe(false)
+  })
+
+  it('affiche le pseudonyme public du vendeur', async () => {
+    const findSellerPseudonym = vi.fn(async () => 'Marie L.')
+    const listing = await getPublicListing(
+      'listing-1',
+      now,
+      dependencies({ findSellerPseudonym }),
+    )
+    expect(listing?.sellerPseudonym).toBe('Marie L.')
+    expect(findSellerPseudonym).toHaveBeenCalledWith('seller-1')
+  })
+
+  it('publie la fiche sans pseudonyme quand le vendeur n’en a pas', async () => {
+    const listing = await getPublicListing(
+      'listing-1',
+      now,
+      dependencies({ findSellerPseudonym: async () => null }),
+    )
+    expect(listing?.sellerPseudonym).toBeNull()
   })
 
   it('ne transmet jamais de numéro ni de coordonnées dans la fiche publique', async () => {
