@@ -1,6 +1,16 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 
-import { ImagePlus, Loader2, MailCheck, ShieldCheck, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ImagePlus,
+  Loader2,
+  MailCheck,
+  Pencil,
+  ShieldCheck,
+  X,
+} from 'lucide-react'
 import {
   type ChangeEvent,
   type DragEvent,
@@ -28,7 +38,12 @@ import {
   PriceAndLocationFields,
 } from '@/features/listings/components/listing-form-fields'
 import { publishListing } from '@/features/listings/functions'
-import { publishListingFieldErrors } from '@/features/listings/listing-form'
+import {
+  firstStepWithErrors,
+  PUBLISH_STEPS,
+  publishListingFieldErrors,
+  stepFieldErrors,
+} from '@/features/listings/listing-form'
 import { priceInputToCents } from '@/features/listings/price-input'
 import {
   MAX_LISTING_PHOTOS,
@@ -41,19 +56,13 @@ type SelectedPhoto = { file: File; url: string }
 /** Saved private contact of the member, used to prefill the last step. */
 export type SavedContact = { phone: string; displayConsent: boolean }
 
-/** Input names in page order, to focus the first invalid one. */
-const FIELD_ORDER = [
-  'title',
-  'categorySlug',
-  'condition',
-  'description',
-  'priceEuros',
-  'postalCode',
-  'city',
-  'department',
-  'phone',
-  'displayConsent',
-] as const
+const LAST_STEP = PUBLISH_STEPS.length - 1
+
+type Recap = {
+  title: string
+  priceEuros: string
+  place: string
+}
 
 export function PublishListingForm({
   contact,
@@ -61,10 +70,28 @@ export function PublishListingForm({
   contact: SavedContact | null
 }) {
   const navigate = useNavigate()
+  const formRef = useRef<HTMLFormElement>(null)
+  const [step, setStep] = useState(0)
+  const [reached, setReached] = useState(0)
+  const [focusTarget, setFocusTarget] = useState<string | null>(null)
+  const [recap, setRecap] = useState<Recap | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<ListingFieldErrors>({})
   const [pending, setPending] = useState(false)
   const photos = usePhotoSelection()
+
+  useEffect(() => {
+    if (!focusTarget) return
+    const form = formRef.current
+    const target =
+      form?.querySelector<HTMLElement>(`[name="${focusTarget}"]`) ??
+      document.getElementById(focusTarget)
+    target?.focus()
+    if (!focusTarget.startsWith('section-'))
+      target?.scrollIntoView({ block: 'center' })
+    else form?.scrollIntoView({ block: 'start' })
+    setFocusTarget(null)
+  }, [focusTarget])
 
   function clearFieldError(event: FormEvent<HTMLFormElement>) {
     const name = (event.target as { name?: unknown }).name
@@ -72,17 +99,42 @@ export function PublishListingForm({
     setFieldErrors(({ [name]: _cleared, ...rest }) => rest)
   }
 
+  function goTo(next: number) {
+    const form = formRef.current
+    if (next === LAST_STEP && form) setRecap(recapFrom(new FormData(form)))
+    setStep(next)
+    setReached((current) => Math.max(current, next))
+    setFocusTarget(`section-${next + 1}`)
+  }
+
+  function showErrors(target: number, errors: ListingFieldErrors) {
+    setFieldErrors(errors)
+    const firstInvalid = PUBLISH_STEPS[target]?.fields.find(
+      (field) => errors[field],
+    )
+    setStep(target)
+    setFocusTarget(firstInvalid ?? `section-${target + 1}`)
+  }
+
+  function continueFrom(form: HTMLFormElement) {
+    const errors = stepFieldErrors(
+      step,
+      publishListingFieldErrors(new FormData(form)),
+    )
+    if (Object.keys(errors).length > 0) return showErrors(step, errors)
+    setFieldErrors({})
+    goTo(step + 1)
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
     const form = event.currentTarget
+    if (step < LAST_STEP) return continueFrom(form)
     const errors = publishListingFieldErrors(new FormData(form))
-    setFieldErrors(errors)
-    const firstInvalid = FIELD_ORDER.find((field) => errors[field])
-    if (firstInvalid) {
-      form.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus()
-      return
-    }
+    const invalidStep = firstStepWithErrors(errors)
+    if (invalidStep !== null) return showErrors(invalidStep, errors)
+    setFieldErrors({})
     setPending(true)
     try {
       const data = new FormData(form)
@@ -108,16 +160,20 @@ export function PublishListingForm({
 
   return (
     <form
-      className="grid gap-6 mt-8"
+      ref={formRef}
+      className="grid gap-6 mt-8 scroll-mt-24"
       encType="multipart/form-data"
       noValidate
       onSubmit={submit}
       onChange={clearFieldError}
     >
+      <StepProgress current={step} reached={reached} onSelect={goTo} />
+
       <FormSection
         step={1}
         title="Votre objet"
         description="Un titre précis et une description honnête attirent les bons acheteurs."
+        hidden={step !== 0}
       >
         <ListingDetailsFields errors={fieldErrors} />
       </FormSection>
@@ -126,6 +182,7 @@ export function PublishListingForm({
         step={2}
         title="Photos"
         description={`Jusqu’à ${MAX_LISTING_PHOTOS} photos, JPG, PNG ou WebP, 5 Mo maximum chacune.`}
+        hidden={step !== 1}
       >
         <PhotoPicker photos={photos} />
       </FormSection>
@@ -134,15 +191,25 @@ export function PublishListingForm({
         step={3}
         title="Prix et localisation"
         description="Seules la ville et le code postal apparaissent sur l’annonce."
+        hidden={step !== 2}
       >
         <PriceAndLocationFields errors={fieldErrors} />
       </FormSection>
 
       <FormSection
         step={4}
-        title="Coordonnées"
+        title="Coordonnées et récapitulatif"
         description="Votre numéro n’est jamais affiché publiquement."
+        hidden={step !== 3}
       >
+        {recap && (
+          <ListingRecap
+            recap={recap}
+            photo={photos.selected[0]?.url}
+            photoCount={photos.selected.length}
+            onEdit={goTo}
+          />
+        )}
         <ListingField
           label="Téléphone"
           htmlFor="phone"
@@ -199,15 +266,28 @@ export function PublishListingForm({
           Adresse email vérifiée requise · en ligne 60 jours
         </p>
         <div className="flex gap-3">
-          <Link
-            to="/mes-annonces"
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'lg' }),
-              'h-11 flex-1 px-5 sm:flex-none',
-            )}
-          >
-            Annuler
-          </Link>
+          {step === 0 ? (
+            <Link
+              to="/mes-annonces"
+              className={cn(
+                buttonVariants({ variant: 'outline', size: 'lg' }),
+                'h-11 flex-1 px-5 sm:flex-none',
+              )}
+            >
+              Annuler
+            </Link>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => goTo(step - 1)}
+              className="flex-1 h-11 px-5 sm:flex-none"
+            >
+              <ArrowLeft aria-hidden />
+              Retour
+            </Button>
+          )}
           <Button
             type="submit"
             size="lg"
@@ -215,11 +295,134 @@ export function PublishListingForm({
             className="flex-1 h-11 px-6 font-semibold sm:flex-none"
           >
             {pending && <Loader2 className="animate-spin" aria-hidden />}
-            {pending ? 'Publication…' : 'Publier l’annonce'}
+            {step < LAST_STEP ? (
+              <>
+                Continuer
+                <ArrowRight aria-hidden />
+              </>
+            ) : pending ? (
+              'Publication…'
+            ) : (
+              'Publier l’annonce'
+            )}
           </Button>
         </div>
       </div>
     </form>
+  )
+}
+
+function recapFrom(form: FormData): Recap {
+  const text = (name: string) => String(form.get(name) ?? '').trim()
+  return {
+    title: text('title'),
+    priceEuros: text('priceEuros'),
+    place: [text('city'), text('postalCode')].filter(Boolean).join(' · '),
+  }
+}
+
+function StepProgress({
+  current,
+  reached,
+  onSelect,
+}: {
+  current: number
+  reached: number
+  onSelect: (step: number) => void
+}) {
+  return (
+    <nav aria-label="Étapes du dépôt">
+      <p className="text-sm font-medium text-muted-foreground sm:hidden">
+        Étape {current + 1} sur {PUBLISH_STEPS.length} ·{' '}
+        <span className="text-foreground">{PUBLISH_STEPS[current]?.title}</span>
+      </p>
+      <ol className="flex gap-2 mt-2 sm:mt-0">
+        {PUBLISH_STEPS.map(({ title }, index) => {
+          const done = index < current
+          const active = index === current
+          return (
+            <li key={title} className="flex-1">
+              <button
+                type="button"
+                onClick={() => onSelect(index)}
+                disabled={index > reached || active}
+                aria-current={active ? 'step' : undefined}
+                className="grid gap-2 w-full rounded-md outline-none text-left group focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default"
+              >
+                <span
+                  className={cn(
+                    'h-1.5 rounded-full bg-muted transition-colors',
+                    (done || active) && 'bg-primary',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'hidden items-center gap-1.5 text-sm sm:flex',
+                    active
+                      ? 'font-semibold text-foreground'
+                      : 'text-muted-foreground',
+                    index <= reached &&
+                      !active &&
+                      'group-hover:text-foreground',
+                  )}
+                >
+                  {done && (
+                    <Check className="size-4 text-primary" aria-hidden />
+                  )}
+                  {index + 1}. {title}
+                </span>
+                <span className="sr-only sm:hidden">
+                  {index + 1}. {title}
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
+  )
+}
+
+function ListingRecap({
+  recap,
+  photo,
+  photoCount,
+  onEdit,
+}: {
+  recap: Recap
+  photo: string | undefined
+  photoCount: number
+  onEdit: (step: number) => void
+}) {
+  return (
+    <div className="flex gap-4 items-start rounded-lg border border-border p-3">
+      <div className="overflow-hidden grid shrink-0 place-items-center size-20 rounded-md bg-muted">
+        {photo ? (
+          <img src={photo} alt="" className="object-cover size-full" />
+        ) : (
+          <ImagePlus className="size-6 text-muted-foreground" aria-hidden />
+        )}
+      </div>
+      <dl className="grid gap-1 flex-1 min-w-0 text-sm">
+        <dt className="sr-only">Titre</dt>
+        <dd className="truncate font-medium">{recap.title}</dd>
+        <dt className="sr-only">Prix</dt>
+        <dd className="font-heading text-base font-semibold">
+          {recap.priceEuros} €
+        </dd>
+        <dt className="sr-only">Lieu et photos</dt>
+        <dd className="text-muted-foreground">
+          {recap.place} ·{' '}
+          {photoCount === 0
+            ? 'aucune photo'
+            : `${photoCount} photo${photoCount > 1 ? 's' : ''}`}
+        </dd>
+      </dl>
+      <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(0)}>
+        <Pencil aria-hidden />
+        Modifier
+      </Button>
+    </div>
   )
 }
 

@@ -1,6 +1,7 @@
 import { MapPin, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { SearchCriteria } from '../rules'
+import { PlaceSearchInput } from './place-search-input'
 import { useSearchSubmit } from './use-search-submit'
 
 export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
@@ -35,14 +36,7 @@ export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
           <label htmlFor="recherche-lieu" className="sr-only">
             Ville, code postal ou département
           </label>
-          <input
-            id="recherche-lieu"
-            name="lieu"
-            type="search"
-            defaultValue={criteria.lieu}
-            placeholder="Ville, code postal ou département"
-            className="w-full min-w-0 outline-none text-sm bg-transparent placeholder:text-muted-foreground"
-          />
+          <PlaceSearchInput id="recherche-lieu" defaultValue={criteria.lieu} />
         </div>
         {criteria.categorie && (
           <input type="hidden" name="categorie" value={criteria.categorie} />

@@ -1,4 +1,4 @@
-import { type ChangeEvent, type ReactNode, useState } from 'react'
+import { type ChangeEvent, type ReactNode, useEffect, useState } from 'react'
 
 import { FieldError } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,12 @@ import {
   LISTING_CATEGORIES,
   LISTING_CONDITIONS,
 } from '@/features/listings/rules'
+import { LocationAutocomplete } from '@/features/locations/components/location-autocomplete'
+import { useCitySuggestions } from '@/features/locations/components/use-city-suggestions'
+import {
+  type CitySuggestion,
+  postalCodeAfterCityChoice,
+} from '@/features/locations/rules'
 
 const categoryLabels = {
   maison: 'Maison',
@@ -64,17 +70,20 @@ export function FormSection({
   step,
   title,
   description,
+  hidden,
   children,
 }: {
   step: number
   title: string
   description: string
+  hidden?: boolean
   children: ReactNode
 }) {
   const headingId = `section-${step}`
   return (
     <section
       aria-labelledby={headingId}
+      hidden={hidden}
       className="grid gap-5 rounded-xl ring-1 ring-foreground/10 p-5 bg-card sm:p-6"
     >
       <header className="flex gap-3">
@@ -82,7 +91,11 @@ export function FormSection({
           {step}
         </span>
         <div className="grid gap-1">
-          <h2 id={headingId} className="font-heading text-lg font-semibold">
+          <h2
+            id={headingId}
+            tabIndex={-1}
+            className="outline-none font-heading text-lg font-semibold"
+          >
             {title}
           </h2>
           <p className="text-sm text-muted-foreground">{description}</p>
@@ -228,16 +241,37 @@ export function PriceAndLocationFields({
   defaults?: ListingFieldDefaults
   errors?: ListingFieldErrors
 }) {
+  const [postalCode, setPostalCode] = useState(defaults.postalCode ?? '')
+  const [city, setCity] = useState(defaults.city ?? '')
   const [department, setDepartment] = useState(defaults.department ?? '')
   const [suggestedDepartment, setSuggestedDepartment] = useState<string | null>(
     defaults.postalCode ? departmentFromPostalCode(defaults.postalCode) : null,
   )
+  const cityQuery = city.trim() === '' ? postalCode : city
+  const { cities, loading } = useCitySuggestions(cityQuery)
+  const postalCodeMatches = cityQuery === postalCode
+
+  useEffect(() => {
+    const [only] = cities
+    if (postalCodeMatches && city === '' && cities.length === 1 && only)
+      setCity(only.city)
+  }, [cities, postalCodeMatches, city])
 
   function updatePostalCode(event: ChangeEvent<HTMLInputElement>) {
-    const suggestion = departmentFromPostalCode(event.target.value)
+    const next = event.target.value
+    setPostalCode(next)
+    const suggestion = departmentFromPostalCode(next)
     if (department === '' || department === suggestedDepartment)
       setDepartment(suggestion ?? '')
     setSuggestedDepartment(suggestion)
+  }
+
+  function chooseCity(choice: CitySuggestion) {
+    const nextPostalCode = postalCodeAfterCityChoice(postalCode, choice)
+    setCity(choice.city)
+    setPostalCode(nextPostalCode)
+    setDepartment(choice.department)
+    setSuggestedDepartment(choice.department)
   }
 
   return (
@@ -278,7 +312,7 @@ export function PriceAndLocationFields({
             pattern="[0-9]{5}"
             maxLength={5}
             placeholder="75011"
-            defaultValue={defaults.postalCode}
+            value={postalCode}
             onChange={updatePostalCode}
             required
             {...fieldAria('postalCode', errors)}
@@ -286,15 +320,34 @@ export function PriceAndLocationFields({
           />
         </ListingField>
         <ListingField label="Ville" htmlFor="city" error={errors?.city}>
-          <Input
-            id="city"
-            name="city"
-            autoComplete="address-level2"
-            placeholder="Paris"
-            defaultValue={defaults.city}
-            required
-            {...fieldAria('city', errors)}
-            className="h-10"
+          <LocationAutocomplete
+            value={city}
+            onValueChange={setCity}
+            items={cities}
+            itemKey={(choice) => `${choice.city}:${choice.postalCodes[0]}`}
+            itemToString={(choice) => choice.city}
+            onSelect={chooseCity}
+            loading={loading}
+            openOnInputClick
+            renderItem={(choice) => (
+              <>
+                <span className="flex-1 truncate">{choice.city}</span>
+                <span className="text-xs text-muted-foreground">
+                  {postalCodesLabel(choice)}
+                </span>
+              </>
+            )}
+            input={
+              <Input
+                id="city"
+                name="city"
+                autoComplete="off"
+                placeholder="Paris"
+                required
+                {...fieldAria('city', errors)}
+                className="h-10"
+              />
+            }
           />
         </ListingField>
         <ListingField
@@ -319,4 +372,9 @@ export function PriceAndLocationFields({
       </div>
     </>
   )
+}
+
+function postalCodesLabel({ postalCodes, department }: CitySuggestion) {
+  if (postalCodes.length === 1) return postalCodes[0]
+  return `${postalCodes.length} codes postaux · ${department}`
 }

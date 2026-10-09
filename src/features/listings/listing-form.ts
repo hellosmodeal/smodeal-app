@@ -114,3 +114,36 @@ export function publishListingFieldErrors(
   }
   return errors
 }
+
+/** Steps of the publish form, with their inputs in page order. */
+export const PUBLISH_STEPS = [
+  {
+    title: 'Votre objet',
+    fields: ['title', 'categorySlug', 'condition', 'description'],
+  },
+  { title: 'Photos', fields: [] },
+  {
+    title: 'Prix et lieu',
+    fields: ['priceEuros', 'postalCode', 'city', 'department'],
+  },
+  { title: 'Coordonnées', fields: ['phone', 'displayConsent'] },
+] as const satisfies readonly { title: string; fields: readonly string[] }[]
+
+export function stepFieldErrors(
+  step: number,
+  errors: Record<string, string>,
+): Record<string, string> {
+  const fields: readonly string[] = PUBLISH_STEPS[step]?.fields ?? []
+  return Object.fromEntries(
+    Object.entries(errors).filter(([field]) => fields.includes(field)),
+  )
+}
+
+export function firstStepWithErrors(
+  errors: Record<string, string>,
+): number | null {
+  const step = PUBLISH_STEPS.findIndex(
+    (_, index) => Object.keys(stepFieldErrors(index, errors)).length > 0,
+  )
+  return step === -1 ? null : step
+}
