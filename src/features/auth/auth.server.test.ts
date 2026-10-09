@@ -84,7 +84,11 @@ describe('registerAndSendVerification', () => {
     email: 'camille@example.test',
     password: 'mot-de-passe-solide',
   }
-  const session = { secret: 'session-secret', expire: '2027-01-01T00:00:00Z' }
+  const session = {
+    userId: 'user-1',
+    secret: 'session-secret',
+    expire: '2027-01-01T00:00:00Z',
+  }
 
   function accounts(createEmailVerification = vi.fn().mockResolvedValue({})) {
     const account = {
@@ -110,6 +114,35 @@ describe('registerAndSendVerification', () => {
     expect(createEmailVerification).toHaveBeenCalledWith({
       url: 'https://smodeal.fr/verification-email',
     })
+  })
+
+  it('crée le profil public avec le pseudonyme choisi à l’inscription', async () => {
+    const { account, sessionAccount } = accounts()
+    const createProfile = vi.fn().mockResolvedValue(undefined)
+
+    await registerAndSendVerification(
+      account,
+      sessionAccount,
+      data,
+      'https://smodeal.fr',
+      createProfile,
+    )
+
+    expect(createProfile).toHaveBeenCalledWith('user-1', 'Camille')
+  })
+
+  it('termine l’inscription même si le profil public ne peut pas être créé', async () => {
+    const { account, sessionAccount } = accounts()
+
+    await expect(
+      registerAndSendVerification(
+        account,
+        sessionAccount,
+        data,
+        'https://smodeal.fr',
+        vi.fn().mockRejectedValue(new Error('table indisponible')),
+      ),
+    ).resolves.toEqual({ session, verificationSent: true })
   })
 
   it('crée le compte même si l’envoi du lien échoue', async () => {

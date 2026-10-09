@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { RevealPhoneButton } from '@/features/contact/components/reveal-phone-button'
 import { ShareListingButton } from '@/features/listings/components/share-listing-button'
 import { ReportListingButton } from '@/features/moderation/components/report-listing-button'
+import { MemberAvatar } from '@/features/navigation/components/user-menu'
 import { findPublicListing } from '@/features/search/functions'
 import {
   categoryLabel,
@@ -193,6 +194,17 @@ function ListingDetail() {
               <h2 className="font-heading text-xl font-bold">
                 Contacter le vendeur
               </h2>
+              <div className="flex gap-3 items-center mt-4">
+                <MemberAvatar name={listing.sellerPseudonym ?? 'Particulier'} />
+                <div className="grid min-w-0">
+                  <span className="truncate font-medium">
+                    {listing.sellerPseudonym ?? 'Un particulier'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Vendeur particulier
+                  </span>
+                </div>
+              </div>
               <div className="mt-4">
                 {!listing.contactAvailable ? (
                   <p className="text-sm text-muted-foreground">

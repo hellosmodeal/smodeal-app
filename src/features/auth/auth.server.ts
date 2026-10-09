@@ -60,8 +60,17 @@ export async function registerAndSendVerification(
   ) => Pick<VerificationAccount, 'createEmailVerification'>,
   data: Credentials & { name: string },
   siteUrl: string | undefined,
+  createProfile: (
+    userId: string,
+    pseudonym: string,
+  ) => Promise<void> = async () => {},
 ): Promise<{ session: Models.Session; verificationSent: boolean }> {
   const session = await createAccountAndSession(account, data)
+  try {
+    await createProfile(session.userId, data.name)
+  } catch {
+    // Le profil sera recréé à la première modification depuis le compte.
+  }
   try {
     await sendEmailVerification(sessionAccount(session.secret), siteUrl)
     return { session, verificationSent: true }

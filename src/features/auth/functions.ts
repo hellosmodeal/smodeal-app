@@ -10,6 +10,7 @@ import {
   limitMemberAction,
   requestTokenSubject,
 } from '@/features/abuse/functions.server'
+import { createPublicProfile } from '@/features/account/account.server'
 import { getServerEnv } from '@/server/env.server'
 import {
   appwriteErrorCode,
@@ -142,6 +143,7 @@ export const signUp = createServerFn({ method: 'POST' })
         // Terms acceptance is checked by the schema, never stored in Appwrite.
         { name: data.name, email: data.email, password: data.password },
         getServerEnv().PUBLIC_SITE_URL,
+        createPublicProfile,
       )
       persistSession(session)
       return { ok: true, verificationSent }

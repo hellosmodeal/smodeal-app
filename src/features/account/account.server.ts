@@ -114,6 +114,13 @@ const productionDependencies: AccountDependencies = {
   },
 }
 
+export async function createPublicProfile(
+  userId: string,
+  pseudonym: string,
+): Promise<void> {
+  await productionDependencies.saveProfile(userId, pseudonym)
+}
+
 const SIGNED_OUT = {
   ok: false,
   message: 'Connectez-vous pour gérer votre compte.',

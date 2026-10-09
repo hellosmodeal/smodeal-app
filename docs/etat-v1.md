@@ -81,7 +81,8 @@ Restent hors de cette passe : profil public vendeur, modification du compte (pse
 Implémenté et testé localement, pas encore déployé :
 
 - Compte : `/compte` modifie le pseudonyme (ligne `profiles` créée ou mise à jour, nom du compte Appwrite aligné), le téléphone privé et l’accord d’affichage (une ligne `contacts` par membre). Un changement d’accord s’applique à toutes les annonces du membre ; le numéro n’est renvoyé qu’au membre lui-même, sans cache. Quota dédié `account_update` (20 par heure).
-- Inscription : acceptation des CGU et de la politique de confidentialité obligatoire, validée côté navigateur et serveur ; rien de nouveau n’est stocké.
+- Inscription : acceptation des CGU et de la politique de confidentialité obligatoire, validée côté navigateur et serveur (l’acceptation n’est pas stockée). La ligne `profiles` est créée dès l’inscription avec le pseudonyme choisi ; un échec n’empêche pas l’inscription.
+- Fiche annonce : le pseudonyme du vendeur est affiché à l’acheteur (repli sur le nom du compte, sinon « Un particulier ») ; ni identifiant ni coordonnée du vendeur dans la réponse.
 - Recherche : départements nommés (« Rhône (69) ») ; barre de catégories sans ascenseur visible.
 - Navigation : en-tête collant refondu. Sur grand écran : méga-menu « Catégories » (six catégories décrites, « Toutes les annonces », encart de dépôt), recherche dans l’en-tête hors accueil et `/recherche`, boutons « Se connecter » / « Créer un compte » pour un visiteur, menu du compte (avatar, Mes annonces, Mon compte, Modération, Se déconnecter) pour un membre. Sur mobile : bouton « Déposer » et panneau latéral (recherche, compte ou connexion, catégories). « Se connecter » et « Créer un compte » ramènent à la page d’origine ; un membre connecté qui ouvre `/connexion` ou `/inscription` est redirigé. Pied de page collé en bas des pages courtes.
 - Modération : message de confirmation après chaque décision, maintenu après le rafraîchissement ; la fenêtre de suspension nomme l’annonce.
@@ -89,4 +90,4 @@ Implémenté et testé localement, pas encore déployé :
 - Dépôt : téléphone et accord pré-remplis depuis le compte (l’accord n’est plus effacé par erreur à chaque publication) ; toutes les erreurs s’affichent sous leur champ et le premier champ invalide reçoit le focus.
 - Formulaires : l’erreur des CGU disparaît dès que la case est cochée ; sur `/compte`, seul le dernier bloc enregistré garde son message de succès.
 
-Restent : pseudonyme affiché côté acheteur et création de la ligne `profiles` dès l’inscription (les pages légales l’annoncent), profil public vendeur, indicateurs d’usage, suppression de compte, levée de suspension, purge des photos orphelines.
+Restent : profil public vendeur, indicateurs d’usage, suppression de compte, levée de suspension, purge des photos orphelines.
