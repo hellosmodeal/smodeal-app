@@ -1,6 +1,6 @@
 # État de la V1
 
-État du code au 29 septembre 2026. Implémenté signifie présent et testé dans le dépôt ; les recettes locales ci-dessous ne prouvent pas un déploiement en production.
+État du code au 9 octobre 2026. Implémenté signifie présent et testé dans le dépôt ; les recettes locales ci-dessous ne prouvent pas un déploiement en production.
 
 ## Parcours implémentés
 
@@ -88,6 +88,8 @@ Implémenté et testé localement, pas encore déployé :
 - Modération : message de confirmation après chaque décision, maintenu après le rafraîchissement ; la fenêtre de suspension nomme l’annonce.
 - Validation du téléphone et texte de l’accord partagés entre le dépôt et le compte.
 - Dépôt : téléphone et accord pré-remplis depuis le compte (l’accord n’est plus effacé par erreur à chaque publication) ; toutes les erreurs s’affichent sous leur champ et le premier champ invalide reçoit le focus.
+- Dépôt en quatre étapes (objet, photos, prix et lieu, coordonnées avec récapitulatif) : barre de progression, retour aux étapes déjà vues, validation de chaque étape avec les schémas partagés avant de continuer ; à la publication, la première étape fautive est rouverte.
+- Localisation : suggestions de communes dans la barre de recherche (communes et départements) et dans le formulaire d’annonce. Choisir une ville remplit le département et le code postal quand la commune n’en a qu’un ; un code postal à commune unique remplit la ville. Les communes viennent de l’API publique geo.api.gouv.fr, appelée côté serveur (délai maximal 2,5 s, cache mémoire 24 h) ; en cas d’échec, la saisie libre reste possible.
 - Formulaires : l’erreur des CGU disparaît dès que la case est cochée ; sur `/compte`, seul le dernier bloc enregistré garde son message de succès.
 
 Restent : profil public vendeur, indicateurs d’usage, suppression de compte, levée de suspension, purge des photos orphelines.
