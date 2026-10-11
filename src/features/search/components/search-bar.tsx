@@ -1,16 +1,24 @@
 import { MapPin, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useLocateMe } from '@/features/locations/components/use-locate-me'
 import type { SearchCriteria } from '../rules'
 import { PlaceSearchInput } from './place-search-input'
 import { useSearchSubmit } from './use-search-submit'
 
 export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
   const handleSubmit = useSearchSubmit()
+  const { locate, locating, error } = useLocateMe()
 
   return (
     <search>
       <form
-        key={`${criteria.q ?? ''}|${criteria.lieu ?? ''}`}
+        key={[
+          criteria.q,
+          criteria.lieu,
+          criteria.lat,
+          criteria.lng,
+          criteria.rayon,
+        ].join('|')}
         action="/recherche"
         method="get"
         aria-label="Rechercher des annonces"
@@ -36,7 +44,12 @@ export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
           <label htmlFor="recherche-lieu" className="sr-only">
             Ville, code postal ou département
           </label>
-          <PlaceSearchInput id="recherche-lieu" defaultValue={criteria.lieu} />
+          <PlaceSearchInput
+            id="recherche-lieu"
+            criteria={criteria}
+            locate={locate}
+            locating={locating}
+          />
         </div>
         {criteria.categorie && (
           <input type="hidden" name="categorie" value={criteria.categorie} />
@@ -45,6 +58,11 @@ export function SearchBar({ criteria = {} }: { criteria?: SearchCriteria }) {
           Rechercher
         </Button>
       </form>
+      {error && (
+        <p role="alert" className="pb-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
     </search>
   )
 }

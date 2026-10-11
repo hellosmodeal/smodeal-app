@@ -4,6 +4,7 @@ import {
   categoryLabel,
   clearFilters,
   describeResults,
+  formatDistance,
   formatPrice,
   formatPublishedAgo,
   hasFilters,
@@ -11,6 +12,7 @@ import {
   parseSearchCriteria,
   requiresLongerKeyword,
   type SearchListing,
+  searchArea,
   searchListings,
 } from './rules'
 
@@ -199,6 +201,19 @@ describe('describeResults', () => {
     expect(describeResults({}, 1).count).toBe('1 annonce')
     expect(describeResults({ lieu: '44000' }, 2).title).toBe('Annonces à 44000')
   })
+
+  it('décrit une recherche autour d’un point avec son rayon', () => {
+    expect(
+      describeResults({ q: 'vélo', lieu: 'Annecy', lat: 45.9, lng: 6.13 }, 3),
+    ).toEqual({
+      title: '« vélo » autour de Annecy',
+      count: '3 annonces dans un rayon de 10 km',
+    })
+    expect(describeResults({ lat: 45.9, lng: 6.13, rayon: 50 }, 0)).toEqual({
+      title: 'Annonces autour de vous',
+      count: 'Aucune annonce dans un rayon de 50 km',
+    })
+  })
 })
 
 describe('listDepartments', () => {
@@ -254,6 +269,12 @@ describe('clearFilters', () => {
         page: 3,
       }),
     ).toEqual({ q: 'vélo', lieu: 'Lyon' })
+  })
+
+  it('garde aussi la zone de recherche autour d’un point', () => {
+    expect(
+      clearFilters({ lieu: 'Annecy', lat: 45.9, lng: 6.13, rayon: 20 }),
+    ).toEqual({ lieu: 'Annecy', lat: 45.9, lng: 6.13, rayon: 20 })
   })
 
   it('renvoie une recherche vide sans mot-clé ni lieu', () => {
@@ -319,5 +340,39 @@ describe('buildPaginationWindow', () => {
       19,
       20,
     ])
+  })
+})
+
+describe('recherche autour d’un point', () => {
+  it('lit une position arrondie au kilomètre et un rayon proposé', () => {
+    expect(
+      parseSearchCriteria({ lat: '45.90678', lng: '6.12893', rayon: '20' }),
+    ).toEqual({ lat: 45.91, lng: 6.13, rayon: 20 })
+  })
+
+  it('ignore une position incomplète ou hors des bornes', () => {
+    expect(parseSearchCriteria({ lat: '45.9', rayon: '20' })).toEqual({})
+    expect(parseSearchCriteria({ lat: '95', lng: '6.1' })).toEqual({})
+    expect(parseSearchCriteria({ lat: 'nord', lng: '6.1' })).toEqual({})
+  })
+
+  it('ignore un rayon qui n’est pas proposé', () => {
+    expect(
+      parseSearchCriteria({ lat: '45.9', lng: '6.1', rayon: '7' }),
+    ).toEqual({ lat: 45.9, lng: 6.1 })
+  })
+
+  it('cherche à 10 km par défaut autour du point', () => {
+    expect(searchArea({ lat: 45.9, lng: 6.13 })).toEqual({
+      center: { lat: 45.9, lng: 6.13 },
+      radiusKm: 10,
+    })
+    expect(searchArea({ lat: 45.9, lng: 6.13, rayon: 50 })?.radiusKm).toBe(50)
+    expect(searchArea({ lieu: 'Annecy' })).toBeNull()
+  })
+
+  it('affiche une distance arrondie au kilomètre', () => {
+    expect(formatDistance(0.4)).toBe('à moins de 1 km')
+    expect(formatDistance(4.6)).toBe('à 5 km')
   })
 })

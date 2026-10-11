@@ -205,3 +205,73 @@ describe('getPublicListing', () => {
     expect(hasContactConsent).not.toHaveBeenCalled()
   })
 })
+
+describe('recherche autour d’un point', () => {
+  const parsed = (queries: string[]) =>
+    queries.map(
+      (query) =>
+        JSON.parse(query) as {
+          method: string
+          attribute?: string
+          values?: unknown[]
+        },
+    )
+
+  it('cherche dans le rayon en mètres autour de la longitude et de la latitude', () => {
+    const queries = parsed(
+      publicListingQueries(
+        { lieu: 'Annecy', lat: 45.9, lng: 6.13, rayon: 20 },
+        new Date('2026-10-10T12:00:00.000Z'),
+        1,
+      ),
+    )
+    expect(queries).toContainEqual({
+      method: 'distanceLessThan',
+      attribute: 'location',
+      values: [[[6.13, 45.9], 20_000, true]],
+    })
+    expect(queries.some((query) => query.attribute === 'city')).toBe(false)
+  })
+
+  it('donne la distance de l’annonce sans transmettre sa position', () => {
+    const listing = toPublicListing(
+      {
+        $id: 'listing-3',
+        title: 'Lampe',
+        description: 'Description',
+        categorySlug: 'maison',
+        condition: 'good',
+        priceCents: 2000,
+        city: 'Annecy',
+        postalCode: '74000',
+        department: '74',
+        publishedAt: '2026-10-10T10:00:00.000Z',
+        location: [6.1264, 45.9024],
+      },
+      { lat: 45.9, lng: 6.13 },
+    )
+    expect(listing?.distanceKm).toBeCloseTo(0.37, 1)
+    expect(listing).not.toHaveProperty('location')
+  })
+
+  it('n’indique pas de distance sans point de départ ni position connue', () => {
+    const row = {
+      $id: 'listing-4',
+      title: 'Lampe',
+      description: 'Description',
+      categorySlug: 'maison',
+      condition: 'good' as const,
+      priceCents: 2000,
+      city: 'Annecy',
+      postalCode: '74000',
+      department: '74',
+      publishedAt: '2026-10-10T10:00:00.000Z',
+    }
+    expect(toPublicListing(row, { lat: 45.9, lng: 6.13 })).not.toHaveProperty(
+      'distanceKm',
+    )
+    expect(
+      toPublicListing({ ...row, location: [6.12, 45.9] }),
+    ).not.toHaveProperty('distanceKm')
+  })
+})

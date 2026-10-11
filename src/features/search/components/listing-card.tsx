@@ -1,6 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { ImageOff } from 'lucide-react'
-import { formatPrice, formatPublishedAgo, type SearchListing } from '../rules'
+import {
+  formatDistance,
+  formatPrice,
+  formatPublishedAgo,
+  type SearchListing,
+} from '../rules'
 
 export function ListingCard({
   listing,
@@ -41,7 +46,10 @@ export function ListingCard({
         </Heading>
         <p className="text-lg font-bold">{formatPrice(listing.priceCents)}</p>
         <p className="text-sm text-muted-foreground">
-          {listing.city} ·{' '}
+          {listing.city}
+          {listing.distanceKm !== undefined &&
+            ` ${formatDistance(listing.distanceKm)}`}{' '}
+          ·{' '}
           <time dateTime={listing.publishedAt}>
             {formatPublishedAgo(listing.publishedAt, now)}
           </time>

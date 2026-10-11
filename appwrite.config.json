@@ -191,6 +191,11 @@
           "array": false
         },
         {
+          "key": "location",
+          "type": "point",
+          "required": false
+        },
+        {
           "key": "photoIds",
           "type": "varchar",
           "size": 36,

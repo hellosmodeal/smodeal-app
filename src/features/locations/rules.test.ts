@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   type CitySuggestion,
   citySuggestionsFromCommunes,
+  communeCenter,
   departmentSuggestions,
+  distanceKm,
   locationLookup,
   postalCodeAfterCityChoice,
+  roundCoordinate,
 } from './rules'
 
 const lyon: CitySuggestion = {
@@ -103,5 +106,67 @@ describe('suggestions de départements', () => {
 
   it('ne propose rien pour une saisie trop courte', () => {
     expect(departmentSuggestions('r')).toEqual([])
+  })
+})
+
+const annecyCommune = {
+  nom: 'Annecy',
+  codesPostaux: ['74000', '74370'],
+  codeDepartement: '74',
+  centre: { type: 'Point', coordinates: [6.1264, 45.9024] },
+}
+
+describe('centre des communes', () => {
+  it('ajoute le centre de la commune à la suggestion', () => {
+    expect(citySuggestionsFromCommunes([annecyCommune])[0]?.center).toEqual({
+      lat: 45.9024,
+      lng: 6.1264,
+    })
+  })
+
+  it('ignore un centre hors des bornes terrestres', () => {
+    const broken = {
+      ...annecyCommune,
+      centre: { type: 'Point', coordinates: [6.1, 145] },
+    }
+    expect(citySuggestionsFromCommunes([broken])[0]?.center).toBeUndefined()
+  })
+
+  it('retient la commune dont le nom et le code postal correspondent', () => {
+    const seynod = {
+      nom: 'Seynod',
+      codesPostaux: ['74600'],
+      codeDepartement: '74',
+      centre: { type: 'Point', coordinates: [6.09, 45.88] },
+    }
+    expect(
+      communeCenter([seynod, annecyCommune], {
+        city: 'annecy',
+        postalCode: '74370',
+      }),
+    ).toEqual({ lat: 45.9024, lng: 6.1264 })
+  })
+
+  it('ne devine pas un centre quand aucune commune ne correspond', () => {
+    expect(
+      communeCenter([annecyCommune], { city: 'Annecy', postalCode: '69001' }),
+    ).toBeNull()
+    expect(
+      communeCenter('erreur', { city: 'Annecy', postalCode: '74000' }),
+    ).toBeNull()
+  })
+})
+
+describe('coordonnées', () => {
+  it('arrondit une position au centième de degré, environ un kilomètre', () => {
+    expect(roundCoordinate(45.906_789)).toBe(45.91)
+    expect(roundCoordinate(-1.554_9)).toBe(-1.55)
+  })
+
+  it('mesure la distance à vol d’oiseau en kilomètres', () => {
+    const paris = { lat: 48.8566, lng: 2.3522 }
+    const lyon = { lat: 45.764, lng: 4.8357 }
+    expect(distanceKm(paris, lyon)).toBeCloseTo(391.5, 0)
+    expect(distanceKm(paris, paris)).toBe(0)
   })
 })
