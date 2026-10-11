@@ -1,5 +1,6 @@
 import { ID, Query } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
+import { ensurePublicProfile } from '@/features/account/account.server'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
 import { geoApi } from '@/features/locations/communes.server'
 import type { GeoPoint } from '@/features/locations/rules'
@@ -38,7 +39,7 @@ export type PublishListingInput = ListingInput & { photos: UploadedPhoto[] }
 export type ListingEditInput = Omit<ListingInput, 'phone' | 'displayConsent'>
 export type ListingForEditing = ListingEditInput & { id: string }
 
-type CurrentUser = { $id: string; emailVerification: boolean }
+type CurrentUser = { $id: string; name: string; emailVerification: boolean }
 
 type ListingRow = ListingLifecycle & {
   $id: string
@@ -109,6 +110,7 @@ export type ListingDependencies = {
     city: string
     postalCode: string
   }) => Promise<GeoPoint | null>
+  ensurePublicProfile: (userId: string, name: string) => Promise<void>
 }
 
 function dependencies(): ListingDependencies {
@@ -120,6 +122,7 @@ function dependencies(): ListingDependencies {
     storage: client.storage,
     createId: ID.unique,
     locateCity: geoApi.locateCity,
+    ensurePublicProfile,
   }
 }
 
@@ -279,6 +282,7 @@ export async function publishListing(
     })
     commitStarted = true
     await deps.tables.updateTransaction({ transactionId, commit: true })
+    await deps.ensurePublicProfile(user.$id, user.name).catch(() => undefined)
     return { id }
   } catch (error) {
     if (transactionId && !commitStarted)

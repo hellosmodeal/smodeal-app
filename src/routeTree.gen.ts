@@ -28,6 +28,7 @@ import { Route as AuthedDeposerRouteImport } from './routes/_authed/deposer'
 import { Route as AuthedMesAnnoncesRouteImport } from './routes/_authed/mes-annonces'
 import { Route as AuthedModerationRouteImport } from './routes/_authed/moderation'
 import { Route as AnnoncesListingIdRouteImport } from './routes/annonces/$listingId'
+import { Route as VendeursProfileIdRouteImport } from './routes/vendeurs/$profileId'
 import { Route as AuthedAnnoncesListingIdModifierRouteImport } from './routes/_authed/annonces/$listingId/modifier'
 
 const IndexRoute = IndexRouteImport.update({
@@ -124,6 +125,11 @@ const AnnoncesListingIdRoute = AnnoncesListingIdRouteImport.update({
   path: '/annonces/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendeursProfileIdRoute = VendeursProfileIdRouteImport.update({
+  id: '/vendeurs/$profileId',
+  path: '/vendeurs/$profileId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedAnnoncesListingIdModifierRoute =
   AuthedAnnoncesListingIdModifierRouteImport.update({
     id: '/annonces/$listingId/modifier',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/vendeurs/$profileId': typeof VendeursProfileIdRoute
   '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesByTo {
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/vendeurs/$profileId': typeof VendeursProfileIdRoute
   '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesById {
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_authed/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/_authed/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/vendeurs/$profileId': typeof VendeursProfileIdRoute
   '/_authed/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRouteTypes {
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/vendeurs/$profileId'
     | '/annonces/$listingId/modifier'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/vendeurs/$profileId'
     | '/annonces/$listingId/modifier'
   id:
     | '__root__'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/_authed/mes-annonces'
     | '/_authed/moderation'
     | '/annonces/$listingId'
+    | '/vendeurs/$profileId'
     | '/_authed/annonces/$listingId/modifier'
   fileRoutesById: FileRoutesById
 }
@@ -279,6 +291,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerificationEmailRoute: typeof VerificationEmailRoute
   AnnoncesListingIdRoute: typeof AnnoncesListingIdRoute
+  VendeursProfileIdRoute: typeof VendeursProfileIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -416,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnnoncesListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendeurs/$profileId': {
+      id: '/vendeurs/$profileId'
+      path: '/vendeurs/$profileId'
+      fullPath: '/vendeurs/$profileId'
+      preLoaderRoute: typeof VendeursProfileIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/annonces/$listingId/modifier': {
       id: '/_authed/annonces/$listingId/modifier'
       path: '/annonces/$listingId/modifier'
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerificationEmailRoute: VerificationEmailRoute,
   AnnoncesListingIdRoute: AnnoncesListingIdRoute,
+  VendeursProfileIdRoute: VendeursProfileIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

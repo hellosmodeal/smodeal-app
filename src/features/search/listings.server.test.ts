@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   getPublicListing,
+  ownerListingQueries,
   type PublicListingDependencies,
   publicListingQueries,
   publicPhotoUrl,
@@ -122,7 +123,10 @@ describe('getPublicListing', () => {
       findActiveListing: async () => privateRow,
       loadViewerId: async () => 'buyer-1',
       hasContactConsent: async () => true,
-      findSellerPseudonym: async () => 'Marie L.',
+      findSeller: async () => ({
+        pseudonym: 'Marie L.',
+        profileId: 'profile-1',
+      }),
       ...overrides,
     }
   }
@@ -157,24 +161,31 @@ describe('getPublicListing', () => {
     expect(withoutConsent?.contactAvailable).toBe(false)
   })
 
-  it('affiche le pseudonyme public du vendeur', async () => {
-    const findSellerPseudonym = vi.fn(async () => 'Marie L.')
+  it('affiche le pseudonyme public du vendeur et le lien vers son profil', async () => {
+    const findSeller = vi.fn(async () => ({
+      pseudonym: 'Marie L.',
+      profileId: 'profile-1',
+    }))
     const listing = await getPublicListing(
       'listing-1',
       now,
-      dependencies({ findSellerPseudonym }),
+      dependencies({ findSeller }),
     )
     expect(listing?.sellerPseudonym).toBe('Marie L.')
-    expect(findSellerPseudonym).toHaveBeenCalledWith('seller-1')
+    expect(listing?.sellerProfileId).toBe('profile-1')
+    expect(findSeller).toHaveBeenCalledWith('seller-1')
   })
 
-  it('publie la fiche sans pseudonyme quand le vendeur n’en a pas', async () => {
+  it('publie la fiche sans pseudonyme ni profil quand le vendeur n’en a pas', async () => {
     const listing = await getPublicListing(
       'listing-1',
       now,
-      dependencies({ findSellerPseudonym: async () => null }),
+      dependencies({
+        findSeller: async () => ({ pseudonym: null, profileId: null }),
+      }),
     )
     expect(listing?.sellerPseudonym).toBeNull()
+    expect(listing?.sellerProfileId).toBeNull()
   })
 
   it('ne transmet jamais de numéro ni de coordonnées dans la fiche publique', async () => {
@@ -273,5 +284,42 @@ describe('recherche autour d’un point', () => {
     expect(
       toPublicListing({ ...row, location: [6.12, 45.9] }),
     ).not.toHaveProperty('distanceKm')
+  })
+})
+
+describe('ownerListingQueries', () => {
+  it('limite les annonces d’un vendeur aux annonces actives et non expirées', () => {
+    const queries = ownerListingQueries(
+      'seller-1',
+      new Date('2026-10-11T12:00:00.000Z'),
+    ).map(
+      (query) =>
+        JSON.parse(query) as {
+          method: string
+          attribute?: string
+          values?: unknown[]
+        },
+    )
+    expect(queries).toContainEqual({
+      method: 'equal',
+      attribute: 'ownerId',
+      values: ['seller-1'],
+    })
+    expect(queries).toContainEqual({
+      method: 'equal',
+      attribute: 'status',
+      values: ['active'],
+    })
+    expect(queries).toContainEqual({
+      method: 'greaterThan',
+      attribute: 'expiresAt',
+      values: ['2026-10-11T12:00:00.000Z'],
+    })
+    expect(
+      queries.some(
+        (query) =>
+          query.method === 'select' && query.values?.includes('ownerId'),
+      ),
+    ).toBe(false)
   })
 })

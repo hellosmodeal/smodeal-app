@@ -49,10 +49,15 @@ function dependencies(
 ): ListingDependencies {
   let index = 0
   return {
-    getUser: vi.fn(async () => ({ $id: 'seller-1', emailVerification: true })),
+    getUser: vi.fn(async () => ({
+      $id: 'seller-1',
+      name: 'Marie Lambert',
+      emailVerification: true,
+    })),
     databaseId: 'smodeal',
     createId: () => `id-${++index}`,
     locateCity: vi.fn(async () => ({ lat: 45.76, lng: 4.84 })),
+    ensurePublicProfile: vi.fn(async () => undefined),
     storage: {
       createFile: vi.fn(async ({ fileId }: { fileId: string }) => ({
         $id: fileId,
@@ -118,6 +123,7 @@ describe('publishListing', () => {
     const deps = dependencies({
       getUser: vi.fn(async () => ({
         $id: 'seller-1',
+        name: 'Marie Lambert',
         emailVerification: false,
       })),
     })
@@ -169,6 +175,29 @@ describe('publishListing', () => {
         data: expect.objectContaining({ location: [4.84, 45.76] }),
       }),
     )
+  })
+
+  it('donne un profil public au vendeur qui n’en a pas encore', async () => {
+    const deps = dependencies()
+
+    await publishListing(input, new Date(), deps)
+
+    expect(deps.ensurePublicProfile).toHaveBeenCalledWith(
+      'seller-1',
+      'Marie Lambert',
+    )
+  })
+
+  it('publie l’annonce même si le profil public ne peut pas être créé', async () => {
+    const deps = dependencies({
+      ensurePublicProfile: vi.fn(async () => {
+        throw new Error('Appwrite indisponible')
+      }),
+    })
+
+    await expect(
+      publishListing(input, new Date(), deps),
+    ).resolves.toHaveProperty('id')
   })
 
   it('publie sans position quand la commune n’est pas trouvée', async () => {
@@ -254,6 +283,7 @@ describe('changeListingStatus', () => {
     const deps = dependencies({
       getUser: vi.fn(async () => ({
         $id: 'seller-2',
+        name: 'Marie Lambert',
         emailVerification: true,
       })),
     })
@@ -270,6 +300,7 @@ describe('renewListing', () => {
     const deps = dependencies({
       getUser: vi.fn(async () => ({
         $id: 'seller-1',
+        name: 'Marie Lambert',
         emailVerification: false,
       })),
     })
@@ -367,6 +398,7 @@ describe('updateListing', () => {
     const deps = dependencies({
       getUser: vi.fn(async () => ({
         $id: 'seller-1',
+        name: 'Marie Lambert',
         emailVerification: false,
       })),
     })
