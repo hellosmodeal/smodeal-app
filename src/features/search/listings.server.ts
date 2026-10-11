@@ -156,6 +156,32 @@ export function publicListingQueries(
   return queries
 }
 
+const SELLER_LISTINGS_LIMIT = 24
+
+export function ownerListingQueries(ownerId: string, now: Date): string[] {
+  return [
+    Query.equal('ownerId', ownerId),
+    Query.equal('status', 'active'),
+    Query.greaterThan('expiresAt', now.toISOString()),
+    Query.select([...publicListingFields]),
+    Query.orderDesc('publishedAt'),
+    Query.limit(SELLER_LISTINGS_LIMIT),
+  ]
+}
+
+export async function listOwnerListings(
+  ownerId: string,
+  now: Date,
+): Promise<{ rows: PublicListingRow[]; total: number }> {
+  const response = await adminClient().tablesDB.listRows<ListingRow>({
+    databaseId: getServerEnv().APPWRITE_DATABASE_ID,
+    tableId: LISTINGS_TABLE_ID,
+    queries: ownerListingQueries(ownerId, now),
+    ttl: 0,
+  })
+  return { rows: response.rows, total: response.total }
+}
+
 export async function listPublicListings(
   criteria: SearchCriteria,
   now: Date,
@@ -194,6 +220,7 @@ export type PublicListingDetail = PublicListing & {
   /** The seller consented to display a contact; never carries the contact itself. */
   contactAvailable: boolean
   sellerPseudonym: string | null
+  sellerProfileId: string | null
 }
 
 type PrivateListingRow = PublicListingRow & { ownerId: string }
@@ -205,7 +232,10 @@ export type PublicListingDependencies = {
   ) => Promise<PrivateListingRow | null>
   loadViewerId: () => Promise<string | null>
   hasContactConsent: (ownerId: string) => Promise<boolean>
-  findSellerPseudonym: (ownerId: string) => Promise<string | null>
+  findSeller: (ownerId: string) => Promise<{
+    pseudonym: string | null
+    profileId: string | null
+  }>
 }
 
 const productionListingDependencies: PublicListingDependencies = {
@@ -245,7 +275,7 @@ const productionListingDependencies: PublicListingDependencies = {
     })
     return response.rows[0]?.displayConsent === true
   },
-  async findSellerPseudonym(ownerId) {
+  async findSeller(ownerId) {
     const { tablesDB, users } = adminClient()
     const response = await tablesDB.listRows<
       Models.Row & { userId: string; pseudonym: string }
@@ -254,18 +284,19 @@ const productionListingDependencies: PublicListingDependencies = {
       tableId: 'profiles',
       queries: [
         Query.equal('userId', ownerId),
-        Query.select(['userId', 'pseudonym']),
+        Query.select(['$id', 'userId', 'pseudonym']),
         Query.limit(1),
       ],
       ttl: 0,
     })
-    const pseudonym = response.rows[0]?.pseudonym
-    if (pseudonym) return pseudonym
+    const profile = response.rows[0]
+    if (profile?.pseudonym)
+      return { pseudonym: profile.pseudonym, profileId: profile.$id }
     try {
       const owner = await users.get({ userId: ownerId })
-      return owner.name.trim() || null
+      return { pseudonym: owner.name.trim() || null, profileId: null }
     } catch {
-      return null
+      return { pseudonym: null, profileId: null }
     }
   },
 }
@@ -279,16 +310,17 @@ export async function getPublicListing(
   if (!row) return null
   const listing = toPublicListing(row)
   if (!listing) return null
-  const [viewerId, contactAvailable, sellerPseudonym] = await Promise.all([
+  const [viewerId, contactAvailable, seller] = await Promise.all([
     dependencies.loadViewerId(),
     dependencies.hasContactConsent(row.ownerId),
-    dependencies.findSellerPseudonym(row.ownerId),
+    dependencies.findSeller(row.ownerId),
   ])
   return {
     ...listing,
     isOwner: viewerId !== null && viewerId === row.ownerId,
     contactAvailable,
-    sellerPseudonym,
+    sellerPseudonym: seller.pseudonym,
+    sellerProfileId: seller.profileId,
   }
 }
 

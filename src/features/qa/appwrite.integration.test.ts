@@ -110,6 +110,7 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
         storage,
         createId: ID.unique,
         locateCity: async () => ({ lat: 45.76, lng: 4.84 }),
+        ensurePublicProfile: async () => undefined,
       }
       const image = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aOuoAAAAASUVORK5CYII=',

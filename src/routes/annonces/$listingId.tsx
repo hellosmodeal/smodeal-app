@@ -197,9 +197,19 @@ function ListingDetail() {
               <div className="flex gap-3 items-center mt-4">
                 <MemberAvatar name={listing.sellerPseudonym ?? 'Particulier'} />
                 <div className="grid min-w-0">
-                  <span className="truncate font-medium">
-                    {listing.sellerPseudonym ?? 'Un particulier'}
-                  </span>
+                  {listing.sellerProfileId ? (
+                    <Link
+                      to="/vendeurs/$profileId"
+                      params={{ profileId: listing.sellerProfileId }}
+                      className="truncate font-medium hover:underline"
+                    >
+                      {listing.sellerPseudonym ?? 'Un particulier'}
+                    </Link>
+                  ) : (
+                    <span className="truncate font-medium">
+                      {listing.sellerPseudonym ?? 'Un particulier'}
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     Vendeur particulier
                   </span>

@@ -6,6 +6,7 @@ import {
   canEditAccount,
   type PrivateContactInput,
   type PublicProfileInput,
+  publicProfileSchema,
 } from './rules'
 
 const PROFILES_TABLE_ID = 'profiles'
@@ -119,6 +120,16 @@ export async function createPublicProfile(
   pseudonym: string,
 ): Promise<void> {
   await productionDependencies.saveProfile(userId, pseudonym)
+}
+
+export async function ensurePublicProfile(
+  userId: string,
+  name: string,
+): Promise<void> {
+  if (await productionDependencies.findProfile(userId)) return
+  const profile = publicProfileSchema.safeParse({ pseudonym: name })
+  if (!profile.success) return
+  await productionDependencies.saveProfile(userId, profile.data.pseudonym)
 }
 
 const SIGNED_OUT = {
