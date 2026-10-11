@@ -1,9 +1,10 @@
 import { type Models, Query } from 'node-appwrite'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
+import { distanceKm, type GeoPoint } from '@/features/locations/rules'
 import { getServerEnv } from '@/server/env.server'
 import { departmentName } from './departments'
 import type { SearchCriteria, SearchListing } from './rules'
-import { searchCategories } from './rules'
+import { searchArea, searchCategories } from './rules'
 
 const LISTINGS_TABLE_ID = 'listings'
 const PHOTOS_BUCKET_ID = 'listing-photos'
@@ -21,6 +22,7 @@ const publicListingFields = [
   'department',
   'photoIds',
   'publishedAt',
+  'location',
 ] as const
 
 export type PublicListingRow = {
@@ -35,6 +37,7 @@ export type PublicListingRow = {
   department: string
   photoIds?: string[]
   publishedAt: string
+  location?: [number, number] | null
 }
 
 type ListingRow = Models.Row & PublicListingRow
@@ -57,7 +60,10 @@ export function publicPhotoUrl(fileId: string, env = getServerEnv()): string {
   return url.toString()
 }
 
-export function toPublicListing(row: PublicListingRow): PublicListing | null {
+export function toPublicListing(
+  row: PublicListingRow,
+  origin?: GeoPoint,
+): PublicListing | null {
   if (!isCategory(row.categorySlug)) return null
   const photoUrls = (row.photoIds ?? [])
     .slice(0, 5)
@@ -77,6 +83,13 @@ export function toPublicListing(row: PublicListingRow): PublicListing | null {
     publishedAt: row.publishedAt,
     image: photoUrls[0],
     photoUrls,
+    ...(origin &&
+      row.location && {
+        distanceKm: distanceKm(origin, {
+          lng: row.location[0],
+          lat: row.location[1],
+        }),
+      }),
   }
 }
 
@@ -109,8 +122,18 @@ export function publicListingQueries(
     Query.select([...publicListingFields]),
   ]
 
+  const area = searchArea(criteria)
   if (criteria.q) queries.push(Query.search('title', criteria.q))
-  if (criteria.lieu) queries.push(locationQuery(criteria.lieu))
+  if (area)
+    queries.push(
+      Query.distanceLessThan(
+        'location',
+        [area.center.lng, area.center.lat],
+        area.radiusKm * 1000,
+        true,
+      ),
+    )
+  else if (criteria.lieu) queries.push(locationQuery(criteria.lieu))
   if (criteria.categorie)
     queries.push(Query.equal('categorySlug', criteria.categorie))
   if (criteria.departement)
@@ -154,9 +177,10 @@ export async function listPublicListings(
   if (page !== requestedPage)
     return listPublicListings({ ...criteria, page }, now)
 
+  const origin = searchArea(criteria)?.center
   return {
     items: response.rows
-      .map(toPublicListing)
+      .map((row) => toPublicListing(row, origin))
       .filter((listing): listing is PublicListing => listing !== null),
     total: response.total,
     page,

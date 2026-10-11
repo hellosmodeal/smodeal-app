@@ -21,7 +21,7 @@ Le socle et les premières tranches sont implémentés ; les limites de récepti
 - Navigateur : formulaires, consultation, navigation et interactions.
 - Serveur TanStack Start : sessions, validation des entrées, autorisation des opérations métier et accès privilégiés.
 - Appwrite : identité, persistance et stockage avec permissions par ressource.
-- API Géo (geo.api.gouv.fr) : suggestions de communes, appelée uniquement par le serveur, sans donnée personnelle ni clé.
+- API Géo (geo.api.gouv.fr) : suggestions de communes, centre des communes et recherche inverse (« autour de moi »), appelée uniquement par le serveur, sans clé ; les coordonnées envoyées sont arrondies à 0,01°.
 - Traitement planifié : expiration des annonces ; mécanisme d'exécution à choisir.
 
 Les requêtes publiques doivent exclure immédiatement les annonces dont la date d'expiration est dépassée, même si le traitement planifié prend du retard.

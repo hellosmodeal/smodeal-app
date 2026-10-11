@@ -36,7 +36,7 @@ La règle de contact ci-dessus est retenue. Catégories V1 : Maison, Multimédia
 - Avis, commentaires, note globale et badge « fiable ».
 - Dépôt financier (« deposit », sens à préciser) et vérification manuelle systématique.
 - Messagerie interne, favoris, comptes professionnels et application mobile native.
-- Carte et recherche par rayon géographique.
+- Carte des annonces (la recherche par rayon autour d’une commune ou de sa position est implémentée).
 
 La V1 ne génère aucun revenu automatisé.
 

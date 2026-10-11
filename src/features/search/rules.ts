@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { previewCategories } from '@/features/listings/home-preview'
+import { type GeoPoint, roundCoordinate } from '@/features/locations/rules'
 
 export const searchCategories = previewCategories
 
@@ -25,6 +26,9 @@ const sortValues = sortOptions.map((option) => option.value) as [
 
 const RESULTS_PER_PAGE = 12
 
+export const radiusOptions = [5, 10, 20, 50, 100] as const
+const DEFAULT_RADIUS_KM = 10
+
 export type SearchListing = {
   id: string
   title: string
@@ -36,6 +40,7 @@ export type SearchListing = {
   departmentName: string
   publishedAt: string
   image?: string
+  distanceKm?: number
 }
 
 function toOptionalText(value: unknown): string | undefined {
@@ -55,6 +60,15 @@ const optionalEuros = z
   )
   .catch(undefined)
 
+const coordinate = (limit: number) =>
+  z.coerce
+    .number()
+    .min(-limit)
+    .max(limit)
+    .transform(roundCoordinate)
+    .optional()
+    .catch(undefined)
+
 const searchCriteriaSchema = z.object({
   q: optionalText,
   lieu: optionalText,
@@ -71,6 +85,13 @@ const searchCriteriaSchema = z.object({
   prixMin: optionalEuros,
   prixMax: optionalEuros,
   tri: z.enum(sortValues).optional().catch(undefined),
+  lat: coordinate(90),
+  lng: coordinate(180),
+  rayon: z.coerce
+    .number()
+    .refine((value) => radiusOptions.some((option) => option === value))
+    .optional()
+    .catch(undefined),
   page: z.coerce.number().int().min(1).optional().catch(undefined),
 })
 
@@ -80,9 +101,29 @@ export function parseSearchCriteria(
   search: Record<string, unknown>,
 ): SearchCriteria {
   const parsed = searchCriteriaSchema.parse(search)
+  if (parsed.lat === undefined || parsed.lng === undefined) {
+    parsed.lat = undefined
+    parsed.lng = undefined
+    parsed.rayon = undefined
+  }
   return Object.fromEntries(
     Object.entries(parsed).filter(([, value]) => value !== undefined),
   ) as SearchCriteria
+}
+
+/** Circle to search in, when the criteria carry a point. */
+export function searchArea(
+  criteria: SearchCriteria,
+): { center: GeoPoint; radiusKm: number } | null {
+  if (criteria.lat === undefined || criteria.lng === undefined) return null
+  return {
+    center: { lat: criteria.lat, lng: criteria.lng },
+    radiusKm: criteria.rayon ?? DEFAULT_RADIUS_KM,
+  }
+}
+
+export function formatDistance(km: number): string {
+  return km < 1 ? 'à moins de 1 km' : `à ${Math.round(km)} km`
 }
 
 export function requiresLongerKeyword(criteria: SearchCriteria): boolean {
@@ -165,12 +206,20 @@ export function describeResults(
     ? `« ${criteria.q} »`
     : category || (criteria.lieu ? 'Annonces' : 'Toutes les annonces')
 
+  const area = searchArea(criteria)
+  const count =
+    total === 0 ? 'Aucune annonce' : `${total} annonce${total > 1 ? 's' : ''}`
+
+  if (area) {
+    const around = criteria.lieu ?? 'vous'
+    return {
+      title: `${criteria.q || category ? subject : 'Annonces'} autour de ${around}`,
+      count: `${count} dans un rayon de ${area.radiusKm} km`,
+    }
+  }
   return {
     title: criteria.lieu ? `${subject} à ${criteria.lieu}` : subject,
-    count:
-      total === 0
-        ? 'Aucune annonce'
-        : `${total} annonce${total > 1 ? 's' : ''}`,
+    count,
   }
 }
 
@@ -214,8 +263,9 @@ export function categoryLabel(slug: string): string | undefined {
 
 export function clearFilters(
   criteria: SearchCriteria,
-): Pick<SearchCriteria, 'q' | 'lieu'> {
-  return parseSearchCriteria({ q: criteria.q, lieu: criteria.lieu })
+): Pick<SearchCriteria, 'q' | 'lieu' | 'lat' | 'lng' | 'rayon'> {
+  const { q, lieu, lat, lng, rayon } = criteria
+  return parseSearchCriteria({ q, lieu, lat, lng, rayon })
 }
 
 export function hasFilters(criteria: SearchCriteria): boolean {

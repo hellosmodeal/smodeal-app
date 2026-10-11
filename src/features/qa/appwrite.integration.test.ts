@@ -109,6 +109,7 @@ describe.skipIf(process.env.SMODEAL_QA !== '1')(
         tables,
         storage,
         createId: ID.unique,
+        locateCity: async () => ({ lat: 45.76, lng: 4.84 }),
       }
       const image = Buffer.from(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aOuoAAAAASUVORK5CYII=',
