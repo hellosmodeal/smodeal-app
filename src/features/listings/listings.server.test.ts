@@ -52,6 +52,7 @@ function dependencies(
     getUser: vi.fn(async () => ({ $id: 'seller-1', emailVerification: true })),
     databaseId: 'smodeal',
     createId: () => `id-${++index}`,
+    locateCity: vi.fn(async () => ({ lat: 45.76, lng: 4.84 })),
     storage: {
       createFile: vi.fn(async ({ fileId }: { fileId: string }) => ({
         $id: fileId,
@@ -149,6 +150,37 @@ describe('publishListing', () => {
           photoIds: ['id-1'],
           expiresAt: '2026-11-30T00:00:00.000Z',
         }),
+      }),
+    )
+  })
+
+  it('situe l’annonce au centre de sa commune', async () => {
+    const deps = dependencies()
+
+    await publishListing(input, new Date(), deps)
+
+    expect(deps.locateCity).toHaveBeenCalledWith({
+      city: 'Lyon',
+      postalCode: '69001',
+    })
+    expect(deps.tables.createRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'listings',
+        data: expect.objectContaining({ location: [4.84, 45.76] }),
+      }),
+    )
+  })
+
+  it('publie sans position quand la commune n’est pas trouvée', async () => {
+    const deps = dependencies({ locateCity: vi.fn(async () => null) })
+
+    await expect(
+      publishListing(input, new Date(), deps),
+    ).resolves.toHaveProperty('id')
+    expect(deps.tables.createRow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tableId: 'listings',
+        data: expect.objectContaining({ location: null }),
       }),
     )
   })
@@ -319,9 +351,13 @@ describe('updateListing', () => {
 
     await updateListing('listing-1', editInput, deps)
 
+    expect(deps.locateCity).toHaveBeenCalledWith({
+      city: 'Villeurbanne',
+      postalCode: '69100',
+    })
     expect(deps.tables.updateRow).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: editInput,
+        data: { ...editInput, location: [4.84, 45.76] },
         transactionId: 'transaction-1',
       }),
     )

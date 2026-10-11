@@ -18,7 +18,7 @@ Routes : `/compte`, `/deposer`, `/mes-annonces`, `/annonces/$listingId/modifier`
 
 ## Choix et limites
 
-- Recherche textuelle : plein texte Appwrite sur le titre, au moins trois caractères. Les demandes trop courtes affichent une explication sans résultats trompeurs. La ville utilise une correspondance exacte ; il n’y a pas de géolocalisation ni de recherche par rayon.
+- Recherche textuelle : plein texte Appwrite sur le titre, au moins trois caractères. Les demandes trop courtes affichent une explication sans résultats trompeurs. Une ville saisie librement utilise une correspondance exacte ; une ville suggérée ou « autour de moi » lance une recherche par rayon (5, 10, 20, 50 ou 100 km, 10 km par défaut) avec la distance sur chaque carte.
 - Le consentement téléphonique est lié au vendeur : la valeur saisie lors d’un dépôt s’applique à ses annonces. Sans accord, les autres membres ne peuvent pas obtenir son numéro. Aucune messagerie intégrée.
 - Expiration : exclusion immédiate des résultats après 60 jours, même si le statut stocké est encore actif. Le renouvellement est possible ; aucun traitement différé n’a été installé.
 - Photos : le bucket configuré permet une lecture publique des fichiers. Un retrait masque la fiche, sans retirer automatiquement les fichiers du stockage ; conservation et nettoyage sont encore à définir. Après un résultat de commit incertain, conserver les photos évite de casser une annonce qui aurait réellement été publiée : réconciliation opérationnelle encore nécessaire.
@@ -90,6 +90,7 @@ Implémenté et testé localement, pas encore déployé :
 - Dépôt : téléphone et accord pré-remplis depuis le compte (l’accord n’est plus effacé par erreur à chaque publication) ; toutes les erreurs s’affichent sous leur champ et le premier champ invalide reçoit le focus.
 - Dépôt en quatre étapes (objet, photos, prix et lieu, coordonnées avec récapitulatif) : barre de progression, retour aux étapes déjà vues, validation de chaque étape avec les schémas partagés avant de continuer ; à la publication, la première étape fautive est rouverte.
 - Localisation : suggestions de communes dans la barre de recherche (communes et départements) et dans le formulaire d’annonce. Choisir une ville remplit le département et le code postal quand la commune n’en a qu’un ; un code postal à commune unique remplit la ville. Les communes viennent de l’API publique geo.api.gouv.fr, appelée côté serveur (délai maximal 2,5 s, cache mémoire 24 h) ; en cas d’échec, la saisie libre reste possible.
+- Position : chaque annonce enregistre le centre de sa commune (colonne `location`, point `[longitude, latitude]`) à la publication et à la modification. Les annonces antérieures se rattrapent avec `scripts/backfill-listing-locations.server.ts` (simulation par défaut, `--write` pour écrire). « Autour de moi » utilise la géolocalisation du navigateur, arrondie à 0,01° (environ 1 km) avant tout envoi ; la position de l’annonce n’est jamais transmise au navigateur, seule la distance l’est.
 - Formulaires : l’erreur des CGU disparaît dès que la case est cochée ; sur `/compte`, seul le dernier bloc enregistré garde son message de succès.
 
 Restent : profil public vendeur, indicateurs d’usage, suppression de compte, levée de suspension, purge des photos orphelines.

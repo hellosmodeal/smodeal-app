@@ -1,6 +1,8 @@
 import { ID, Query } from 'node-appwrite'
 import { InputFile } from 'node-appwrite/file'
 import { adminClient, loadCurrentUser } from '@/features/auth/session.server'
+import { geoApi } from '@/features/locations/communes.server'
+import type { GeoPoint } from '@/features/locations/rules'
 import { getServerEnv } from '@/server/env.server'
 import type { UploadedPhoto } from './listing-form'
 import {
@@ -103,6 +105,10 @@ export type ListingDependencies = {
   tables: Tables
   storage: Storage
   createId: () => string
+  locateCity: (place: {
+    city: string
+    postalCode: string
+  }) => Promise<GeoPoint | null>
 }
 
 function dependencies(): ListingDependencies {
@@ -113,7 +119,19 @@ function dependencies(): ListingDependencies {
     tables: client.tablesDB,
     storage: client.storage,
     createId: ID.unique,
+    locateCity: geoApi.locateCity,
   }
+}
+
+async function listingLocation(
+  deps: ListingDependencies,
+  place: { city: string; postalCode: string },
+): Promise<[number, number] | null> {
+  const center = await deps.locateCity({
+    city: place.city,
+    postalCode: place.postalCode,
+  })
+  return center ? [center.lng, center.lat] : null
 }
 
 function requireVerifiedUser(
@@ -205,6 +223,7 @@ export async function publishListing(
     if (message) throw new Error(message)
   }
 
+  const location = await listingLocation(deps, input)
   const photoIds: string[] = []
   let transactionId: string | undefined
   let commitStarted = false
@@ -250,6 +269,7 @@ export async function publishListing(
         city: input.city,
         postalCode: input.postalCode,
         department: input.department,
+        location,
         photoIds,
         status: 'active',
         publishedAt,
@@ -361,6 +381,7 @@ export async function updateListing(
 ): Promise<void> {
   const user = await deps.getUser()
   requireVerifiedUser(user)
+  const location = await listingLocation(deps, input)
   const transaction = await deps.tables.createTransaction({ ttl: 60 })
   try {
     await editableListing(
@@ -374,7 +395,7 @@ export async function updateListing(
       databaseId: deps.databaseId,
       tableId: LISTINGS_TABLE_ID,
       rowId: id,
-      data: input,
+      data: { ...input, location },
       transactionId: transaction.$id,
     })
     await deps.tables.updateTransaction({
