@@ -1,4 +1,9 @@
-import { AppwriteException, ID, type Models } from 'node-appwrite'
+import {
+  AppwriteException,
+  ID,
+  type Models,
+  OAuthProvider,
+} from 'node-appwrite'
 
 import { callbackUrl } from './rules'
 
@@ -120,4 +125,45 @@ export async function completePasswordRecovery(
   password: string,
 ): Promise<void> {
   await account.updateRecovery({ userId, secret, password })
+}
+
+type OAuthAccount = {
+  createOAuth2Token: (params: {
+    provider: OAuthProvider
+    success: string
+    failure: string
+    scopes: string[]
+  }) => Promise<string>
+}
+
+export async function startGoogleSignIn(
+  account: OAuthAccount,
+  urls: { success: string; failure: string },
+): Promise<string> {
+  return account.createOAuth2Token({
+    provider: OAuthProvider.Google,
+    ...urls,
+    scopes: ['openid', 'email', 'profile'],
+  })
+}
+
+export async function completeGoogleSignIn<Session extends { userId: string }>(
+  account: {
+    createSession: (params: {
+      userId: string
+      secret: string
+    }) => Promise<Session>
+  },
+  users: { get: (params: { userId: string }) => Promise<{ name: string }> },
+  token: { userId: string; secret: string },
+  ensureProfile: (userId: string, name: string) => Promise<void>,
+): Promise<Session> {
+  const session = await account.createSession(token)
+  try {
+    const user = await users.get({ userId: session.userId })
+    await ensureProfile(session.userId, user.name)
+  } catch {
+    // Le profil sera recréé à la prochaine publication.
+  }
+  return session
 }

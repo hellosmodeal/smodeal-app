@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   completeEmailVerification,
+  completeGoogleSignIn,
   completePasswordRecovery,
   registerAndSendVerification,
   requestPasswordRecovery,
   sendEmailVerification,
+  startGoogleSignIn,
 } from './auth.server'
 
 describe('sendEmailVerification', () => {
@@ -182,5 +184,61 @@ describe('registerAndSendVerification', () => {
       ),
     ).rejects.toThrow('conflit')
     expect(sessionAccount).not.toHaveBeenCalled()
+  })
+})
+
+describe('connexion avec Google', () => {
+  it('demande à Appwrite l’adresse de connexion Google avec les retours du site', async () => {
+    const createOAuth2Token = vi
+      .fn()
+      .mockResolvedValue('https://accounts.google.com/o/oauth2/auth?x=1')
+
+    await expect(
+      startGoogleSignIn(
+        { createOAuth2Token },
+        { success: 'https://smodeal.fr/ok', failure: 'https://smodeal.fr/ko' },
+      ),
+    ).resolves.toBe('https://accounts.google.com/o/oauth2/auth?x=1')
+    expect(createOAuth2Token).toHaveBeenCalledWith({
+      provider: 'google',
+      success: 'https://smodeal.fr/ok',
+      failure: 'https://smodeal.fr/ko',
+      scopes: ['openid', 'email', 'profile'],
+    })
+  })
+
+  it('ouvre la session du jeton Google et crée le profil public du membre', async () => {
+    const session = { userId: 'user-1', secret: 'secret-session' }
+    const createSession = vi.fn().mockResolvedValue(session)
+    const ensureProfile = vi.fn().mockResolvedValue(undefined)
+
+    await expect(
+      completeGoogleSignIn(
+        { createSession },
+        { get: async () => ({ name: 'Marie L.' }) },
+        { userId: 'user-1', secret: 'jeton' },
+        ensureProfile,
+      ),
+    ).resolves.toBe(session)
+    expect(createSession).toHaveBeenCalledWith({
+      userId: 'user-1',
+      secret: 'jeton',
+    })
+    expect(ensureProfile).toHaveBeenCalledWith('user-1', 'Marie L.')
+  })
+
+  it('ouvre la session même si le profil public ne peut pas être créé', async () => {
+    const session = { userId: 'user-1', secret: 'secret-session' }
+
+    await expect(
+      completeGoogleSignIn(
+        { createSession: async () => session },
+        { get: async () => ({ name: 'Marie L.' }) },
+        { userId: 'user-1', secret: 'jeton' },
+        async () => {
+          throw new Error('indisponible')
+        },
+      ),
+    ).resolves.toBe(session)
   })
 })

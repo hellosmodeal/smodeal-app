@@ -11,6 +11,10 @@ import { Button } from '@/components/ui/button'
 import { AuthCard } from '@/features/auth/components/auth-card'
 import { AuthForm } from '@/features/auth/components/auth-form'
 import { EmailVerificationButton } from '@/features/auth/components/email-verification-button'
+import {
+  AuthDivider,
+  GoogleSignInButton,
+} from '@/features/auth/components/google-sign-in-button'
 import { signUp } from '@/features/auth/functions'
 import {
   authRedirectSearchSchema,
@@ -51,6 +55,36 @@ function SignUpPage() {
       submitLabel="Créer mon compte"
       pendingLabel="Création…"
       schema={signUpSchema}
+      leading={
+        <>
+          <GoogleSignInButton
+            redirect={redirect}
+            label="S’inscrire avec Google"
+          />
+          <p className="text-xs text-muted-foreground">
+            En continuant avec Google, vous acceptez les{' '}
+            <a
+              href="/cgu"
+              target="_blank"
+              className="underline text-primary"
+              rel="noopener"
+            >
+              conditions générales d’utilisation
+            </a>{' '}
+            et la{' '}
+            <a
+              href="/confidentialite"
+              target="_blank"
+              className="underline text-primary"
+              rel="noopener"
+            >
+              politique de confidentialité
+            </a>
+            .
+          </p>
+          <AuthDivider />
+        </>
+      }
       fields={[
         {
           name: 'name',

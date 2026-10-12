@@ -5,7 +5,12 @@ import {
   useRouter,
 } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AuthForm } from '@/features/auth/components/auth-form'
+import {
+  AuthDivider,
+  GoogleSignInButton,
+} from '@/features/auth/components/google-sign-in-button'
 import { signIn } from '@/features/auth/functions'
 import {
   authRedirectSearchSchema,
@@ -29,7 +34,7 @@ export const Route = createFileRoute('/connexion')({
 
 function SignInPage() {
   const router = useRouter()
-  const { redirect } = Route.useSearch()
+  const { redirect, erreur } = Route.useSearch()
   const signInFn = useServerFn(signIn)
 
   return (
@@ -39,6 +44,20 @@ function SignInPage() {
       submitLabel="Se connecter"
       pendingLabel="Connexion…"
       schema={signInSchema}
+      leading={
+        <>
+          {erreur === 'google' && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                La connexion avec Google n’a pas abouti. Réessayez ou
+                connectez-vous avec votre email.
+              </AlertDescription>
+            </Alert>
+          )}
+          <GoogleSignInButton redirect={redirect} />
+          <AuthDivider />
+        </>
+      }
       fields={[
         {
           name: 'email',
