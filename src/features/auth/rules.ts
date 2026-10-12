@@ -41,6 +41,30 @@ export function safeRedirect(path: string | undefined): string | undefined {
   return isSafeInternalPath(path) ? path : undefined
 }
 
+export function googleSignInUrls(
+  origin: string,
+  redirect: string | undefined,
+  state?: string,
+): { success: string; failure: string } {
+  const target = safeRedirect(redirect)
+  const success = new URL('/connexion/google/retour', origin)
+  if (state) success.searchParams.set('state', state)
+  const failure = new URL('/connexion', origin)
+  failure.searchParams.set('erreur', 'google')
+  if (target) {
+    success.searchParams.set('redirect', target)
+    failure.searchParams.set('redirect', target)
+  }
+  return { success: success.toString(), failure: failure.toString() }
+}
+
+export function isExpectedOAuthState(
+  received: string | null | undefined,
+  expected: string | null | undefined,
+): boolean {
+  return Boolean(received && expected && received === expected)
+}
+
 const authPages = new Set(['/connexion', '/inscription'])
 
 /**
@@ -84,6 +108,7 @@ export const authRedirectSearchSchema = z.object({
     .optional()
     .catch(undefined)
     .transform(safeRedirect),
+  erreur: z.literal('google').optional().catch(undefined),
 })
 
 const email = z.email('Saisissez une adresse email valide.')

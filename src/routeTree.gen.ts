@@ -28,7 +28,9 @@ import { Route as AuthedDeposerRouteImport } from './routes/_authed/deposer'
 import { Route as AuthedMesAnnoncesRouteImport } from './routes/_authed/mes-annonces'
 import { Route as AuthedModerationRouteImport } from './routes/_authed/moderation'
 import { Route as AnnoncesListingIdRouteImport } from './routes/annonces/$listingId'
+import { Route as ConnexionGoogleRouteImport } from './routes/connexion_.google'
 import { Route as VendeursProfileIdRouteImport } from './routes/vendeurs/$profileId'
+import { Route as ConnexionGoogleRetourRouteImport } from './routes/connexion_.google.retour'
 import { Route as AuthedAnnoncesListingIdModifierRouteImport } from './routes/_authed/annonces/$listingId/modifier'
 
 const IndexRoute = IndexRouteImport.update({
@@ -125,10 +127,20 @@ const AnnoncesListingIdRoute = AnnoncesListingIdRouteImport.update({
   path: '/annonces/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnexionGoogleRoute = ConnexionGoogleRouteImport.update({
+  id: '/connexion_/google',
+  path: '/connexion/google',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendeursProfileIdRoute = VendeursProfileIdRouteImport.update({
   id: '/vendeurs/$profileId',
   path: '/vendeurs/$profileId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ConnexionGoogleRetourRoute = ConnexionGoogleRetourRouteImport.update({
+  id: '/retour',
+  path: '/retour',
+  getParentRoute: () => ConnexionGoogleRoute,
 } as any)
 const AuthedAnnoncesListingIdModifierRoute =
   AuthedAnnoncesListingIdModifierRouteImport.update({
@@ -156,7 +168,9 @@ export interface FileRoutesByFullPath {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/connexion/google': typeof ConnexionGoogleRouteWithChildren
   '/vendeurs/$profileId': typeof VendeursProfileIdRoute
+  '/connexion/google/retour': typeof ConnexionGoogleRetourRoute
   '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesByTo {
@@ -178,7 +192,9 @@ export interface FileRoutesByTo {
   '/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/connexion/google': typeof ConnexionGoogleRouteWithChildren
   '/vendeurs/$profileId': typeof VendeursProfileIdRoute
+  '/connexion/google/retour': typeof ConnexionGoogleRetourRoute
   '/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRoutesById {
@@ -202,7 +218,9 @@ export interface FileRoutesById {
   '/_authed/mes-annonces': typeof AuthedMesAnnoncesRoute
   '/_authed/moderation': typeof AuthedModerationRoute
   '/annonces/$listingId': typeof AnnoncesListingIdRoute
+  '/connexion_/google': typeof ConnexionGoogleRouteWithChildren
   '/vendeurs/$profileId': typeof VendeursProfileIdRoute
+  '/connexion_/google/retour': typeof ConnexionGoogleRetourRoute
   '/_authed/annonces/$listingId/modifier': typeof AuthedAnnoncesListingIdModifierRoute
 }
 export interface FileRouteTypes {
@@ -226,7 +244,9 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/connexion/google'
     | '/vendeurs/$profileId'
+    | '/connexion/google/retour'
     | '/annonces/$listingId/modifier'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -248,7 +268,9 @@ export interface FileRouteTypes {
     | '/mes-annonces'
     | '/moderation'
     | '/annonces/$listingId'
+    | '/connexion/google'
     | '/vendeurs/$profileId'
+    | '/connexion/google/retour'
     | '/annonces/$listingId/modifier'
   id:
     | '__root__'
@@ -271,7 +293,9 @@ export interface FileRouteTypes {
     | '/_authed/mes-annonces'
     | '/_authed/moderation'
     | '/annonces/$listingId'
+    | '/connexion_/google'
     | '/vendeurs/$profileId'
+    | '/connexion_/google/retour'
     | '/_authed/annonces/$listingId/modifier'
   fileRoutesById: FileRoutesById
 }
@@ -291,6 +315,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerificationEmailRoute: typeof VerificationEmailRoute
   AnnoncesListingIdRoute: typeof AnnoncesListingIdRoute
+  ConnexionGoogleRoute: typeof ConnexionGoogleRouteWithChildren
   VendeursProfileIdRoute: typeof VendeursProfileIdRoute
 }
 
@@ -429,12 +454,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnnoncesListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connexion_/google': {
+      id: '/connexion_/google'
+      path: '/connexion/google'
+      fullPath: '/connexion/google'
+      preLoaderRoute: typeof ConnexionGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendeurs/$profileId': {
       id: '/vendeurs/$profileId'
       path: '/vendeurs/$profileId'
       fullPath: '/vendeurs/$profileId'
       preLoaderRoute: typeof VendeursProfileIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/connexion_/google/retour': {
+      id: '/connexion_/google/retour'
+      path: '/retour'
+      fullPath: '/connexion/google/retour'
+      preLoaderRoute: typeof ConnexionGoogleRetourRouteImport
+      parentRoute: typeof ConnexionGoogleRoute
     }
     '/_authed/annonces/$listingId/modifier': {
       id: '/_authed/annonces/$listingId/modifier'
@@ -465,6 +504,18 @@ const AuthedRouteChildren: AuthedRouteChildren = {
 const AuthedRouteWithChildren =
   AuthedRoute._addFileChildren(AuthedRouteChildren)
 
+interface ConnexionGoogleRouteChildren {
+  ConnexionGoogleRetourRoute: typeof ConnexionGoogleRetourRoute
+}
+
+const ConnexionGoogleRouteChildren: ConnexionGoogleRouteChildren = {
+  ConnexionGoogleRetourRoute: ConnexionGoogleRetourRoute,
+}
+
+const ConnexionGoogleRouteWithChildren = ConnexionGoogleRoute._addFileChildren(
+  ConnexionGoogleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
@@ -481,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerificationEmailRoute: VerificationEmailRoute,
   AnnoncesListingIdRoute: AnnoncesListingIdRoute,
+  ConnexionGoogleRoute: ConnexionGoogleRouteWithChildren,
   VendeursProfileIdRoute: VendeursProfileIdRoute,
 }
 export const routeTree = rootRouteImport

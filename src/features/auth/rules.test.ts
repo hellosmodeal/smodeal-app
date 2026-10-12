@@ -4,8 +4,10 @@ import {
   authFieldErrors,
   authRedirectSearchSchema,
   callbackUrl,
+  googleSignInUrls,
   isActiveUser,
   isAdmin,
+  isExpectedOAuthState,
   isSafeInternalPath,
   safeRedirect,
   sessionCookieName,
@@ -254,5 +256,38 @@ describe('signedInAuthPageRedirect', () => {
         redirect: undefined,
       }),
     ).toBeNull()
+  })
+})
+
+describe('googleSignInUrls', () => {
+  it('revient sur le site avec la page à rouvrir après la connexion Google', () => {
+    expect(googleSignInUrls('https://smodeal.fr', '/annonces/abc')).toEqual({
+      success:
+        'https://smodeal.fr/connexion/google/retour?redirect=%2Fannonces%2Fabc',
+      failure:
+        'https://smodeal.fr/connexion?erreur=google&redirect=%2Fannonces%2Fabc',
+    })
+  })
+
+  it('ignore une page de retour externe', () => {
+    expect(googleSignInUrls('https://smodeal.fr', '//evil.test')).toEqual({
+      success: 'https://smodeal.fr/connexion/google/retour',
+      failure: 'https://smodeal.fr/connexion?erreur=google',
+    })
+  })
+})
+
+describe('isExpectedOAuthState', () => {
+  it('accepte le retour Google qui porte le jeton posé au départ', () => {
+    expect(
+      googleSignInUrls('https://smodeal.fr', undefined, 'n1').success,
+    ).toBe('https://smodeal.fr/connexion/google/retour?state=n1')
+    expect(isExpectedOAuthState('n1', 'n1')).toBe(true)
+  })
+
+  it('refuse un retour Google sans jeton ou avec un autre jeton', () => {
+    expect(isExpectedOAuthState(null, 'n1')).toBe(false)
+    expect(isExpectedOAuthState('n1', undefined)).toBe(false)
+    expect(isExpectedOAuthState('n2', 'n1')).toBe(false)
   })
 })

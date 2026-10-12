@@ -31,6 +31,7 @@ export function AuthForm({
   submitLabel,
   pendingLabel,
   onSubmit,
+  leading,
   children,
 }: {
   title: string
@@ -43,6 +44,7 @@ export function AuthForm({
   onSubmit: (
     values: Record<string, string>,
   ) => Promise<{ ok: true } | { ok: false; message: string }>
+  leading?: ReactNode
   children?: ReactNode
 }) {
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +81,7 @@ export function AuthForm({
 
   return (
     <AuthCard title={title} description={description}>
+      {leading}
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         {fields.map((field) => {
           const fieldError = fieldErrors[field.name]
