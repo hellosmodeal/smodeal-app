@@ -17,6 +17,7 @@ import {
   signedInAuthPageRedirect,
   signInSchema,
 } from '@/features/auth/rules'
+import { PasskeySignInButton } from '@/features/passkeys/components/passkey-sign-in-button'
 
 export const Route = createFileRoute('/connexion')({
   validateSearch: authRedirectSearchSchema,
@@ -55,6 +56,7 @@ function SignInPage() {
             </Alert>
           )}
           <GoogleSignInButton redirect={redirect} />
+          <PasskeySignInButton redirect={redirect} />
           <AuthDivider />
         </>
       }
