@@ -496,6 +496,72 @@
           "orders": ["ASC"]
         }
       ]
+    },
+    {
+      "$id": "passkeys",
+      "$permissions": [],
+      "databaseId": "smodeal",
+      "name": "Clés d’accès privées",
+      "enabled": true,
+      "rowSecurity": false,
+      "columns": [
+        {
+          "key": "userId",
+          "type": "varchar",
+          "size": 36,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "credentialId",
+          "type": "varchar",
+          "size": 256,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "publicKey",
+          "type": "varchar",
+          "size": 1024,
+          "required": true,
+          "array": false
+        },
+        {
+          "key": "counter",
+          "type": "integer",
+          "required": true,
+          "array": false,
+          "min": 0,
+          "max": 2000000000
+        },
+        {
+          "key": "transports",
+          "type": "varchar",
+          "size": 16,
+          "required": false,
+          "array": true
+        },
+        {
+          "key": "lastUsedAt",
+          "type": "datetime",
+          "required": false,
+          "array": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "uniq_credential",
+          "type": "unique",
+          "columns": ["credentialId"],
+          "orders": ["ASC"]
+        },
+        {
+          "key": "idx_user",
+          "type": "key",
+          "columns": ["userId", "$createdAt"],
+          "orders": ["ASC", "DESC"]
+        }
+      ]
     }
   ],
   "buckets": [

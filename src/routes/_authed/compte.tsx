@@ -7,16 +7,24 @@ import { PublicProfileForm } from '@/features/account/components/public-profile-
 import { getAccountSettings } from '@/features/account/functions'
 import { EmailVerificationButton } from '@/features/auth/components/email-verification-button'
 import { SignOutButton } from '@/features/auth/components/sign-out-button'
+import { PasskeyList } from '@/features/passkeys/components/passkey-list'
+import { getMemberPasskeys } from '@/features/passkeys/functions'
 
 export const Route = createFileRoute('/_authed/compte')({
-  loader: () => getAccountSettings(),
+  loader: async () => {
+    const [settings, passkeys] = await Promise.all([
+      getAccountSettings(),
+      getMemberPasskeys(),
+    ])
+    return { settings, passkeys }
+  },
   head: () => ({ meta: [{ title: 'Mon compte — Smodeal' }] }),
   component: AccountPage,
 })
 
 function AccountPage() {
   const { user } = Route.useRouteContext()
-  const settings = Route.useLoaderData()
+  const { settings, passkeys } = Route.useLoaderData()
   // Only the card edited last keeps its success message.
   const [activeCard, setActiveCard] = useState<'profile' | 'contact' | null>(
     null,
@@ -80,6 +88,7 @@ function AccountPage() {
           <AlertDescription>{settings.message}</AlertDescription>
         </Alert>
       )}
+      {passkeys.ok && <PasskeyList passkeys={passkeys.passkeys} />}
       <SignOutButton variant="outline" size="default" />
     </section>
   )
