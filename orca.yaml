@@ -1,0 +1,12 @@
+scripts:
+  setup: |
+    set -euo pipefail
+    MAIN="$(cd "$(dirname "$(git rev-parse --git-common-dir)")" && pwd)"
+    for f in .env .env.qa.local .agents/.env; do
+      if [ -f "$MAIN/$f" ] && [ ! -f "$f" ]; then
+        mkdir -p "$(dirname "$f")"
+        cp "$MAIN/$f" "$f"
+        chmod 600 "$f"
+      fi
+    done
+    pnpm install --frozen-lockfile
